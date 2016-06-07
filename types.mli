@@ -6,3 +6,4 @@ type ty =
 
 val print_type: ty -> unit;;
 
+val extr: ty -> ty -> (ty*ty);;

@@ -8,12 +8,20 @@ let rec top_level lexbuf =
         let s = Parser.main Lexer.token lexbuf
         in 
         (
-  	      match s with
-  	        Quit -> ()
-		| Extract(a,b) -> 
-                     print_type a;
-                     print_string "\n";
-                     top_level lexbuf 
+  	    	match s with
+  	        | Quit -> ()
+			| Extract(a,b) -> 
+				let (a',b') = extr a b in
+					print_string "extr(";
+                	print_type a;
+                	print_string ",";
+                	print_type b;
+                	print_string ")=(";
+                	print_type a';
+                	print_string ",";
+                	print_type b';
+                	print_string ")\n";
+                	top_level lexbuf 
  	   )
       with
         Parsing.Parse_error ->

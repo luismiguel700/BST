@@ -24,4 +24,14 @@ let rec print_type_lev t l =
 
 let print_type t = print_type_lev t 0;;
 
-let rec extr t1 t2 = 1;;
+let rec extr a b = 
+  match a,b with
+  | _, SkipTy -> (a,b)
+  | SkipTy, BasicTy(id) -> (a, b)
+  | BasicTy(id), BasicTy(id') when id=id' -> (SkipTy,SkipTy)
+  | BasicTy(id), BasicTy(id') -> (a,b) (* ERRO *)
+  | SeqTy(a1,a2), BasicTy(id) -> extrSeqId a1 a2 b
+
+(* pre-condition: b is a BasicTy *)
+and extrSeqId a1 a2 b = (SkipTy,SkipTy) (* incomplete *)
+;;
