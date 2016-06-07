@@ -4,6 +4,9 @@ type ty =
      | SeqTy of ty * ty
      | ParTy of ty * ty;;
 
+exception FailId of string*string;;
+exception FailEmptyRes;;
+
 val print_type: ty -> unit;;
 
 val extr: ty -> ty -> (ty*ty);;

@@ -26,7 +26,16 @@ let rec top_level lexbuf =
       with
         Parsing.Parse_error ->
         print_string "Syntax error\n" ;
-        top_level lexbuf 
+        top_level lexbuf
+
+        | FailId(s,s') -> 
+        	print_string "incompatible ids: ";
+        	print_string s;
+        	print_string " and ";
+        	print_string s';
+        	print_string "\n"
+        | FailEmptyRes ->
+        	print_string "invalid invariant: empty residue"
  )
 ;;
 
