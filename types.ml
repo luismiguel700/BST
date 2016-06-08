@@ -29,7 +29,7 @@ let rec print_type_lev t l =
 
 let print_type t = print_type_lev t 0;;
 
-(* A<:0 ? *)
+(* 0<:A ? *)
 let rec isSkip a =
 	match a with
 	| SkipTy -> true
