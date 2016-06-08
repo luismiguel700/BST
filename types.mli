@@ -6,6 +6,7 @@ type ty =
 
 exception FailId of string*string;;
 exception FailEmptyRes;;
+exception Fail of string;;
 
 val print_type: ty -> unit;;
 
