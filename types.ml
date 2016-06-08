@@ -59,8 +59,10 @@ let rec extr a b =
 	| SeqTy(a1,a2), BasicTy(id) -> extrSeqId a1 a2 id
 	| ParTy(a1,a2), BasicTy(id) -> extrParId a1 a2 id
 	| _, SeqTy(b1,b2) -> extrSeq a b1 b2
+	| SkipTy, ParTy(_,_) -> (a,b)
 	| BasicTy(id), ParTy(b1,b2) -> extrIdPar id b1 b2
-(*	| SeqTy(a1,a2), ParTy(b1,b2) -> extrSeqPar a1 a2 b1 b2 *)
+	| SeqTy(a1,a2), ParTy(b1,b2) -> extrSeqPar a1 a2 b1 b2
+(*	| ParTy(a1,a2), ParTy(b1,b2) -> (SkipTy, SkipTy) *)
 
 and extrSeqId a1 a2 id = 
 	let (a1', b') = extr a1 (BasicTy(id)) in
@@ -103,4 +105,16 @@ and extrIdPar id b1 b2 =
 		extr (BasicTy(id)) b1
 	else
 		raise (Fail("extrIdPar"))
+
+and extrSeqPar a1 a2 b1 b2 =
+	let (a1', b') = extr a1 (ParTy(b1,b2)) in
+		match b' with
+		| SkipTy -> (SeqTy(a1',a2), SkipTy)
+		| _ -> 
+			if isSkip b2 then
+				extr (SeqTy(a1,a2)) b1
+			else if isSkip b1 then
+				extr (SeqTy(a1,a2)) b2
+			else
+				raise (Fail("extrSeqPar"))
 ;;
