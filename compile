@@ -7,5 +7,7 @@ ocamlc -c -dtypes comm.ml
 ocamlc -c -dtypes parser.mli
 ocamlc -c -dtypes parser.ml
 ocamlc -c -dtypes lexer.ml
+ocamlc -c -dtypes test.mli
+ocamlc -c -dtypes test.ml
 ocamlc -c -dtypes main.ml
-ocamlc -o main types.cmo lexer.cmo parser.cmo main.cmo
+ocamlc -o main types.cmo lexer.cmo parser.cmo test.cmo main.cmo
