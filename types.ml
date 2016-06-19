@@ -57,7 +57,7 @@ let rec inFst t a =
 	| ParTy(a1,a2) -> inFst t a1 || inFst t a2 
 ;;
 
-(* split x A[x] = (A', A'') ==> A[x] <: x;A' | A'' *)
+(* split A[x] x = (A', A'') ==> A[x] <: x;A' | A'' *)
 let rec split a x =
 	match a with
 	| SkipTy -> raise (NoVar(x))
