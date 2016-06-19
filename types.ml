@@ -77,7 +77,7 @@ let rec split a x =
 		else
 			raise (NoVar(x))
 
-(* join_par y z A[y][z] x = C'[x] where C[y][z] <: C'[y|z] *)
+(* join_par y z A[y][z] x = A'[x] where A[y][z] <: A'[y|z] *)
 let rec join_par y z a x =
 	match a with
 	| SkipTy -> raise (FailJoin(y,z,a))
