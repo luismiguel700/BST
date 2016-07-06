@@ -3,8 +3,9 @@ open Comm;;
 open Test;;	
 
 let extract a b = 
+	resetCount ();
 	try
-		let (a',b') = extr a b in
+		let (a',b',_) = extr a b in
 			print_string "extr(";
 			print_type a;
 			print_string ",";
@@ -41,13 +42,13 @@ let rec top_level lexbuf =
 			)
 		with
 			Parsing.Parse_error ->
-			print_string "Syntax error\n" ;
-			top_level lexbuf
+				print_string "Syntax error\n" ;
+				top_level lexbuf
 	)
 ;;
 
-let main () = test
-(*  let lexbuf = Lexing.from_channel (stdin) in top_level lexbuf *)
+let main () = 
+	let lexbuf = Lexing.from_channel (stdin) in top_level lexbuf
 ;;
 
 main ();;
