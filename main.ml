@@ -3,25 +3,40 @@ open Comm;;
 open Test;;
 open List;;	
 
+let print_extr a b res =
+	iter
+	(
+		fun (a',b',h) ->
+			print_string "extr( ";
+			print_type a;
+			print_string ", ";
+			print_type b;
+			print_string " ) = ( ";
+			print_type a';
+			print_string ", ";
+			print_type b';
+			print_string ", [";
+			iter 
+			(
+				fun (id, t) -> 
+					print_int id; 
+					print_string "->"; 
+					print_type t; 
+					print_string ","
+			) 
+			h ;
+			print_string "] )\n"
+	)
+	res
+
 let extract a b = 
 	resetCount ();
 	try
 		let res = extr a b in
-			map
-			(
-				fun (a',b',_) ->
-					print_string "extr(";
-					print_type a;
-					print_string ",";
-					print_type b;
-					print_string ")=(";
-					print_type a';
-					print_string ",";
-					print_type b';
-					print_string ")\n"
-			)
-			res ;
-			()
+			if length res = 0 then 
+				print_string "no solution\n"
+			else
+				print_extr a b res
 	with
 	| FailId(s,s') -> 
 		print_string "incompatible ids: ";

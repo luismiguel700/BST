@@ -62,7 +62,7 @@ let rec inFst t a =
 	| SkipTy -> false
 	| BasicTy(_) -> t=a
 	| Var(_) -> t=a
-	| Hole(_) -> false
+	| Hole(_) -> t=a
 	| SeqTy(a1,a2) -> 
 		if isSkip a1 then
 			inFst t a2
@@ -103,7 +103,8 @@ let rec extr(a:ty)(b:ty):((ty * ty * map) list) =
 	| ParTy(a1,a2), BasicTy(id) -> extrParId a1 a2 b
 	| _, SeqTy(b1,b2) -> extrSeq a b1 b2
 	| _, ParTy(b1,b2) -> extrPar a b1 b2
-	| _, _ -> raise (Fail("not defined"))
+	| _, Hole(_) -> raise (Fail("not defined"))
+	| _, Var(_) -> raise (Fail("not defined"))
 
 and extrIdId id =
 	let newId = freshId () in
