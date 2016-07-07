@@ -89,14 +89,14 @@ let rec substHolesVars a h =
 	| [] -> a
 	| (id,_)::tail -> substHolesVars (subst a (Hole(id)) (Var(id))) tail
 
-let rec extr a b = 
+let rec extr(a:ty)(b:ty):((ty * ty * map) list) = 
 	match a,b with
-	| _, SkipTy -> (a, b, [])
-	| SkipTy, BasicTy(id) -> (a, b, [])
-	| Hole(_), BasicTy(id) -> (a, b, [])
+	| _, SkipTy -> [(a, b, [])]
+	| SkipTy, BasicTy(id) -> [(a, b, [])]
+	| Hole(_), BasicTy(id) -> [(a, b, [])]
 	| BasicTy(id), BasicTy(id') when id=id' -> extrIdId id
-	| BasicTy(id), BasicTy(id') -> raise (FailId(id,id'))
-	| Var(id), BasicTy(id') -> raise(FailVarId(id,id'))
+	| BasicTy(id), BasicTy(id') -> []
+	| Var(id), BasicTy(id') -> []
 	| SeqTy(a1,a2), BasicTy(id) -> extrSeqId a1 a2 b
 	| ParTy(a1,a2), BasicTy(id) -> extrParId a1 a2 b
 	| _, SeqTy(b1,b2) -> extrSeq a b1 b2
@@ -105,41 +105,86 @@ let rec extr a b =
 
 and extrIdId id =
 	let newId = freshId () in
-		(Var(newId), SkipTy, [(newId, BasicTy(id))])
+		[(Var(newId), SkipTy, [(newId, BasicTy(id))])]
 
 and extrSeqId a1 a2 b = 
-	let (a1', b', h) = extr a1 b in
-		match b' with
-		| SkipTy -> (SeqTy(a1',a2), b', h)
-		| _ -> 
-			let (a2', b', h) = extr a2 b' in
-				(SeqTy(a1', a2'), b', h)
+	let a1s = extr a1 b in
+		concat
+		(
+			map
+			(
+				fun (a1', b', h) ->
+					match b' with
+					| SkipTy -> [(SeqTy(a1',a2), b', h)]
+					| _ ->
+						let a2s = extr a2 b' in
+							map (fun (a2', b', h) -> (SeqTy(a1', a2'), b', h)) a2s
+			)
+			a1s
+		)
 
 and extrParId a1 a2 b =
-	print_type (ParTy(a1,a2)); print_string "\n";
-	if inFst b a1 then
-		let (a1', _, h) = extr a1 b in
-			(ParTy(a1',a2), SkipTy, h)
-	else if inFst b a2 then
-		let (a2', _, h) = extr a2 b in
-			(ParTy(a1,a2'), SkipTy, h)
-	else
-		let (a1', _, _) = extr a1 b in
-		let (a2', _, _) = extr a2 b in
-			(ParTy(a1',a2'), b, [])
+	let a1s = extr a1 b in
+	let a2s = extr a2 b in
+		concat
+			(
+				map
+				(
+					fun (a1', b', h1) -> 
+						append
+						(if b=b' then [] else [(ParTy(a1', a2), SkipTy, h1)])
+						(
+							map 
+							(
+								fun (a2', b'', h2) -> 
+									if b=b'' then
+										(ParTy(a1',a2'), b, [])
+									else
+										(ParTy(a1, a2'), SkipTy, h2)
+							)
+							a2s
+						)
+				)
+				a1s
+			)
 
 and extrSeq a b1 b2 =
-	let (a', b1', h1) = extr a b1 in
-		if isSkip b1' then
-			let ah' = substVarsHoles a' h1 in
-			let (ah'', b2', h2) = extr ah' b2 in
-			let a'' = substHolesVars ah'' h1 in
-				(a'', b2', h1@h2)
-		else
-			(a', SeqTy(b1',b2), h1)
+	let a_s = extr a b1 in
+		concat
+		(
+			map
+			(
+				fun (a', b1', h1) ->
+					if isSkip b1' then
+						let ah' = substVarsHoles a' h1 in
+							let a_s' = extr ah' b2 in
+							map
+							(
+								fun (ah'', b2', h2) ->
+									let a'' = substHolesVars ah'' h1 in
+										(a'', b2', h1@h2)
+							)
+							a_s'
+					else
+						[(a', SeqTy(b1',b2), h1)]
+			)
+			a_s
+		)
 
 and extrPar a b1 b2 =
-	let (a', b1', h1) = extr a b1 in
-	let (a'', b2', h2) = extr a' b2 in
-		(a'', ParTy(b1',b2'), h1@h2)
+	let a_s = extr a b1 in
+		concat
+		(
+			map
+			(
+				fun (a', b1', h1) ->
+					let a_s' = extr a' b2 in
+						map
+						(
+							fun (a'', b2', h2) -> (a'', ParTy(b1',b2'), h1@h2)
+						)
+						a_s'
+			)
+			a_s
+		)
 ;;

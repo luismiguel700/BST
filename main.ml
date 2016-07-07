@@ -1,20 +1,27 @@
 open Types;;
 open Comm;;
-open Test;;	
+open Test;;
+open List;;	
 
 let extract a b = 
 	resetCount ();
 	try
-		let (a',b',_) = extr a b in
-			print_string "extr(";
-			print_type a;
-			print_string ",";
-			print_type b;
-			print_string ")=(";
-			print_type a';
-			print_string ",";
-			print_type b';
-			print_string ")\n"
+		let res = extr a b in
+			map
+			(
+				fun (a',b',_) ->
+					print_string "extr(";
+					print_type a;
+					print_string ",";
+					print_type b;
+					print_string ")=(";
+					print_type a';
+					print_string ",";
+					print_type b';
+					print_string ")\n"
+			)
+			res ;
+			()
 	with
 	| FailId(s,s') -> 
 		print_string "incompatible ids: ";
