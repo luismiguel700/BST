@@ -149,41 +149,35 @@ and extrParId a1 a2 b =
 
 and extrSeq a b1 b2 =
 	let a_s = extr a b1 in
-		concat
+		concatmap
 		(
-			map
-			(
-				fun (a', b1', h1) ->
-					if isSkip b1' then
-						let ah' = substVarsHoles a' h1 in
-							let a_s' = extr ah' b2 in
-							map
-							(
-								fun (ah'', b2', h2) ->
-									let a'' = substHolesVars ah'' h1 in
-										(a'', b2', h1@h2)
-							)
-							a_s'
-					else
-						[(a', SeqTy(b1',b2), h1)]
-			)
-			a_s
+			fun (a', b1', h1) ->
+				if isSkip b1' then
+					let ah' = substVarsHoles a' h1 in
+						let a_s' = extr ah' b2 in
+						map
+						(
+							fun (ah'', b2', h2) ->
+								let a'' = substHolesVars ah'' h1 in
+									(a'', b2', h1@h2)
+						)
+						a_s'
+				else
+					[(a', SeqTy(b1',b2), h1)]	
 		)
+		a_s
 
 and extrPar a b1 b2 =
 	let a_s = extr a b1 in
-		concat
+		concatmap
 		(
-			map
-			(
-				fun (a', b1', h1) ->
-					let a_s' = extr a' b2 in
-						map
-						(
-							fun (a'', b2', h2) -> (a'', ParTy(b1',b2'), h1@h2)
-						)
-						a_s'
-			)
-			a_s
+			fun (a', b1', h1) ->
+				let a_s' = extr a' b2 in
+					map
+					(
+						fun (a'', b2', h2) -> (a'', ParTy(b1',b2'), h1@h2)
+					)
+					a_s'
 		)
+		a_s
 ;;
