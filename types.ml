@@ -16,6 +16,8 @@ exception FailVarId of int*string;;
 exception FailEmptyRes;;
 exception Fail of string;;
 
+let concatmap f l = concat (map f l)
+
 let idCount = ref 0;;
 
 let resetCount () = idCount := 0
@@ -109,44 +111,41 @@ and extrIdId id =
 
 and extrSeqId a1 a2 b = 
 	let a1s = extr a1 b in
-		concat
+		concatmap
 		(
-			map
-			(
-				fun (a1', b', h) ->
-					match b' with
-					| SkipTy -> [(SeqTy(a1',a2), b', h)]
-					| _ ->
-						let a2s = extr a2 b' in
-							map (fun (a2', b', h) -> (SeqTy(a1', a2'), b', h)) a2s
-			)
-			a1s
+			fun (a1', b', h) ->
+				match b' with
+				| SkipTy -> [(SeqTy(a1',a2), b', h)]
+				| _ ->
+					let a2s = extr a2 b' in
+						map (fun (a2', b', h) -> (SeqTy(a1', a2'), b', h)) a2s
 		)
+		a1s
 
 and extrParId a1 a2 b =
 	let a1s = extr a1 b in
 	let a2s = extr a2 b in
-		concat
-			(
-				map
+		let a1s' = filter (fun (a1', b', _) -> b'=SkipTy) a1s in
+		let a2s' = filter (fun (a2', b'', _) -> b''=SkipTy) a2s in
+			let res1 = map (fun (a1', b', h1) -> (ParTy(a1', a2), SkipTy, h1)) a1s' in
+			let res2 = map (fun (a2', b'', h2) -> (ParTy(a1, a2'), SkipTy, h2)) a2s' in
+			let res3 = 
+				concatmap
 				(
 					fun (a1', b', h1) -> 
-						append
-						(if b=b' then [] else [(ParTy(a1', a2), SkipTy, h1)])
+						concatmap 
 						(
-							map 
-							(
-								fun (a2', b'', h2) -> 
-									if b=b'' then
-										(ParTy(a1',a2'), b, [])
-									else
-										(ParTy(a1, a2'), SkipTy, h2)
-							)
-							a2s
+							fun (a2', b'', h2) -> 
+								if b'=b && b''=b then
+									[(ParTy(a1',a2'), b, [])]
+								else
+									[]
 						)
+						a2s
 				)
 				a1s
-			)
+			in
+				append (append res1 res2) res3
 
 and extrSeq a b1 b2 =
 	let a_s = extr a b1 in
