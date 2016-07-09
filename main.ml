@@ -29,7 +29,7 @@ let print_extr a b res =
 	)
 	res
 
-let extract a b = 
+let extr_comm a b = 
 	resetCount ();
 	try
 		let res = extr a b in
@@ -49,6 +49,24 @@ let extract a b =
 	| Fail(s) ->
 		print_string "failed in " ; print_string s; print_string "\n"
 
+let join_comm xs a h y =
+	let (a', (y', b)) = join xs a h y in
+		print_string "join( [";
+		iter (fun x -> print_int x; print_string ",") xs ;
+		print_string "], ";
+		print_type a;
+		print_string ", [";
+		iter (fun (x, b) -> print_int x; print_string "->"; print_type b; print_string ",") h;
+		print_string "], ";
+		print_int y;
+		print_string " ) = ( ";
+		print_type a';
+		print_string ", ";
+		print_int y';
+		print_string "->(";
+		print_type b;
+		print_string ") )\n"
+
 let rec top_level lexbuf =
 	print_string "> " ;
 	flush stdout;
@@ -58,9 +76,8 @@ let rec top_level lexbuf =
 			(
 				match s with
 				| Quit -> ()
-				| Extract(a,b) -> 
-					extract a b;
-					top_level lexbuf 
+				| Extract(a,b) -> extr_comm a b; top_level lexbuf
+				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
 			)
 		with
 			Parsing.Parse_error ->

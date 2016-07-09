@@ -17,4 +17,6 @@ val resetCount: unit -> unit;;
 
 val print_type: ty -> unit;;
 
+val join: (int list) -> ty -> map -> int -> (ty*(int*ty))
+
 val extr: ty -> ty -> ((ty * ty * map) list);;

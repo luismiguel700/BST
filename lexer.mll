@@ -11,7 +11,8 @@ rule token = parse
 
 | eof   			{ EOF }
 
-| "extr"       { EXTR } 
+| "extr"       { EXTR }
+| "join"       { JOIN }  
 | "quit"          { QUIT } 
 
 | "bool"          { BOOLT }
@@ -27,6 +28,9 @@ rule token = parse
 | ";;" 		  { TERM }
 | "(" 		  { LPAR }
 | ")" 		  { RPAR }
+| "[" 		  { LPAR2 }
+| "]" 		  { RPAR2 }
+| "->" 		  { ARROW }
 
 | ['0'-'9']+                      { INT(int_of_string (Lexing.lexeme lexbuf)) }
 | ['0'-'9']* "." ['0'-'9']*       { FLOAT(float_of_string (Lexing.lexeme lexbuf)) }

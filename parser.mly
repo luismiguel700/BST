@@ -10,6 +10,7 @@ open Comm
 %token EOF 
 %token QUIT
 %token EXTR
+%token JOIN
 
 %token PAR
 %token SEQ
@@ -22,6 +23,9 @@ open Comm
 
 %token LPAR
 %token RPAR
+%token LPAR2
+%token RPAR2
+%token ARROW
 
 %token COMMA
 %token COLON
@@ -50,6 +54,7 @@ command TERM { $1 }
 command:
 | QUIT { Quit }
 | EXTR ty_par COMMA ty_par { Extract($2,$4) }
+| JOIN LPAR2 vars RPAR2 COMMA ty_par COMMA LPAR2 map RPAR2 COMMA INT { Join($3,$6,$9,$12) }
 
 ty_par:
   ty_seq              { $1 }
@@ -61,7 +66,14 @@ ty_seq:
 
 ty_bas:
    ID { BasicTy($1) }
+| INT { Var($1) }
 | STOPT { SkipTy }
 | LPAR ty_par RPAR { $2 }
 
+vars:
+| INT { [$1] }
+| INT COMMA vars {$1::$3}
 
+map:
+| INT ARROW ty_par { [($1,$3)] }
+| INT ARROW ty_par COMMA map { ($1,$3)::$5 }
