@@ -10,6 +10,8 @@ open Comm
 %token EOF 
 %token QUIT
 %token EXTR
+%token OK_EXTR
+%token KO_EXTR
 %token JOIN
 
 %token PAR
@@ -54,6 +56,8 @@ command TERM { $1 }
 command:
 | QUIT { Quit }
 | EXTR ty_par COMMA ty_par { Extract($2,$4) }
+| OK_EXTR ty_par COMMA ty_par { OKextract($2,$4) }
+| KO_EXTR ty_par COMMA ty_par { KOextract($2,$4) }
 | JOIN LPAR2 vars RPAR2 COMMA ty_par COMMA LPAR2 map RPAR2 COMMA INT { Join($3,$6,$9,$12) }
 
 ty_par:

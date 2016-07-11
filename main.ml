@@ -3,6 +3,13 @@ open Comm;;
 open Test;;
 open List;;	
 
+let print_extract a b =
+	print_string "extract(";
+	print_type a;
+	print_string ", ";
+	print_type b;
+	print_string ")\n"
+
 let print_extr a b res =
 	iter
 	(
@@ -25,29 +32,36 @@ let print_extr a b res =
 					print_string ","
 			) 
 			h ;
-			print_string "] )\n"
+			print_string "] )"
 	)
 	res
 
 let extr_comm a b = 
-	resetCount ();
-	try
-		let res = extr a b in
-			if length res = 0 then 
-				print_string "no solution\n"
-			else
-				print_extr a b res
-	with
-	| FailId(s,s') -> 
-		print_string "incompatible ids: ";
-		print_string s;
-		print_string " and ";
-		print_string s';
-		print_string "\n"
-	| FailEmptyRes ->
-		print_string "invalid invariant: empty residue"
-	| Fail(s) ->
-		print_string "failed in " ; print_string s; print_string "\n"
+	let res = extract a b in
+		if length res = 0 then 
+			print_string "no solution\n"
+		else
+			print_extr a b res
+
+let extract_ok_comm a b =
+	let res = extract a b in
+		if length res = 0 then 
+		(
+			print_string "ERROR: should not be possible to ";
+			print_extract a b
+		)
+		else
+			print_extract a b
+
+let extract_ko_comm a b =
+	let res = extract a b in
+		if length res = 0 then 
+			print_extract a b
+		else
+		(
+			print_string "ERROR: should be possible to ";
+			print_extract a b
+		)	
 
 let join_comm xs a h y =
 	let (a', (y', b)) = join xs a h y in
@@ -77,6 +91,8 @@ let rec top_level lexbuf =
 				match s with
 				| Quit -> ()
 				| Extract(a,b) -> extr_comm a b; top_level lexbuf
+				| OKextract(a,b) -> extract_ok_comm a b; top_level lexbuf
+				| KOextract(a,b) -> extract_ko_comm a b; top_level lexbuf
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
 			)
 		with

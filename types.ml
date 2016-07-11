@@ -11,11 +11,9 @@ type ty =
 
 type map = (int * ty) list (* optimizar mais tarde com hashmaps *)
 
-exception FailId of string*string;;
-exception FailVarId of int*string;;
-exception FailEmptyRes;;
 exception Fail of string;;
 exception VarNotFound of int;;
+exception VarsNotFound of int list;;
 
 let concatmap f l = concat (map f l)
 
@@ -131,10 +129,10 @@ let rec split a x =
 (* join(~x, A[~x], H, y)=(A'[y], H')  ==>  A{H(~x)/~x} <: A'{H'(y)/y} *)
 let rec join(xs: int list)(a:ty)(h:map)(y:int):(ty*(int*ty)) =
 	match a with
-	| SkipTy -> raise (VarNotFound(y))
-	| Hole(_) -> raise (VarNotFound(y))
-	| Var(id) -> (Var(y), (y, mapFind h id)) (*the verification "id in xs" is done before*)
-	| BasicTy(id) -> raise (VarNotFound(y))
+	| SkipTy -> raise (VarsNotFound(xs))
+	| Hole(_) -> raise (VarsNotFound(xs))
+	| Var(id) -> if mem id xs then (Var(y), (y, mapFind h id)) else raise (VarsNotFound(xs))
+	| BasicTy(id) -> raise (VarsNotFound(xs))
 	| SeqTy(b, c) ->
 		if containsVars c xs then
 			let (b', (y', d)) = join xs b h y in (* may not be necessary *)
@@ -159,7 +157,7 @@ let rec join(xs: int list)(a:ty)(h:map)(y:int):(ty*(int*ty)) =
 			let (c', h') = join xs c h y in
 				(ParTy(b, c'), h')
 		else
-			raise (VarNotFound(y))
+			raise (VarsNotFound(xs))
 
 let rec extr(a:ty)(b:ty):((ty * ty * map) list) = 
 	match a,b with
@@ -252,3 +250,6 @@ and extrPar a b1 b2 =
 		)
 		a_s
 ;;
+
+let extract a b = resetCount (); extr a b
+
