@@ -63,23 +63,48 @@ let extract_ko_comm a b =
 			print_extract a b
 		)	
 
+let print_join xs a h y a' y' b =
+	print_string "join( [";
+	iter (fun x -> print_int x; print_string ",") xs ;
+	print_string "], ";
+	print_type a;
+	print_string ", [";
+	iter (fun (x, b) -> print_int x; print_string "->"; print_type b; print_string ",") h;
+	print_string "], ";
+	print_int y;
+	print_string " ) = ( ";
+	print_type a';
+	print_string ", ";
+	print_int y';
+	print_string "->(";
+	print_type b;
+	print_string ") )"
+
 let join_comm xs a h y =
 	let (a', (y', b)) = join xs a h y in
-		print_string "join( [";
-		iter (fun x -> print_int x; print_string ",") xs ;
-		print_string "], ";
-		print_type a;
-		print_string ", [";
-		iter (fun (x, b) -> print_int x; print_string "->"; print_type b; print_string ",") h;
-		print_string "], ";
-		print_int y;
-		print_string " ) = ( ";
-		print_type a';
-		print_string ", ";
-		print_int y';
-		print_string "->(";
-		print_type b;
-		print_string ") )\n"
+	(	
+		print_join xs a h y a' y' b;
+		print_string "\n"
+	)
+
+let join_ok_comm xs a h y c =
+	let (a', (y', b)) = join xs a h y in
+		let res = extract a' c in
+			if length res = 0 then
+			(
+				print_string "ERROR: the result of ";
+				print_join xs a h y a' y' b;
+				print_string " is not subtype of ";
+				print_type c;
+				print_string "\n"
+			)
+			else
+			(
+				print_join xs a h y a' y' b;
+				print_string " , ";
+				print_type c;
+				print_string "\n"
+			)
 
 let rec top_level lexbuf =
 	print_string "> " ;
@@ -94,6 +119,7 @@ let rec top_level lexbuf =
 				| OKextract(a,b) -> extract_ok_comm a b; top_level lexbuf
 				| KOextract(a,b) -> extract_ko_comm a b; top_level lexbuf
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
+				| OKjoin(xs, a, h, y, b) -> join_ok_comm xs a h y b; top_level lexbuf
 			)
 		with
 			Parsing.Parse_error ->

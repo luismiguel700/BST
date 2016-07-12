@@ -15,6 +15,7 @@ rule token = parse
 | "OKextr"       { OK_EXTR }
 | "KOextr"       { KO_EXTR }
 | "join"       { JOIN }  
+| "OKjoin"     { OK_JOIN } 
 | "quit"          { QUIT } 
 
 | "bool"          { BOOLT }
@@ -34,6 +35,7 @@ rule token = parse
 | "]" 		  { RPAR2 }
 | "->" 		  { ARROW }
 
+| ['1'-'9']+ ['0'-'9']* { NAT(int_of_string (Lexing.lexeme lexbuf)) }
 | ['0'-'9']+                      { INT(int_of_string (Lexing.lexeme lexbuf)) }
 | ['0'-'9']* "." ['0'-'9']*       { FLOAT(float_of_string (Lexing.lexeme lexbuf)) }
 | "\"" ['A'-'Z' 'a'-'z' '0'-'9' '_' ' ' '*' '-']* "\""  { STRING(Lexing.lexeme lexbuf) }

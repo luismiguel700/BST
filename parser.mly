@@ -13,6 +13,7 @@ open Comm
 %token OK_EXTR
 %token KO_EXTR
 %token JOIN
+%token OK_JOIN
 
 %token PAR
 %token SEQ
@@ -38,6 +39,7 @@ open Comm
 %token FLOATT
 %token STRINGT
 
+%token <int> NAT
 %token <int> INT
 %token <float> FLOAT
 %token <string> STRING
@@ -58,7 +60,8 @@ command:
 | EXTR ty_par COMMA ty_par { Extract($2,$4) }
 | OK_EXTR ty_par COMMA ty_par { OKextract($2,$4) }
 | KO_EXTR ty_par COMMA ty_par { KOextract($2,$4) }
-| JOIN LPAR2 vars RPAR2 COMMA ty_par COMMA LPAR2 map RPAR2 COMMA INT { Join($3,$6,$9,$12) }
+| JOIN join_args { let (xs,a,h,y) = $2 in Join(xs,a,h,y) }
+| OK_JOIN join_args COMMA ty_par { let (xs,a,h,y) = $2 in OKjoin(xs,a,h,y,$4) }
 
 ty_par:
   ty_seq              { $1 }
@@ -70,14 +73,17 @@ ty_seq:
 
 ty_bas:
    ID { BasicTy($1) }
-| INT { Var($1) }
+| NAT { Var($1) }
 | STOPT { SkipTy }
 | LPAR ty_par RPAR { $2 }
 
 vars:
-| INT { [$1] }
-| INT COMMA vars {$1::$3}
+| NAT { [$1] }
+| NAT COMMA vars {$1::$3}
 
 map:
-| INT ARROW ty_par { [($1,$3)] }
-| INT ARROW ty_par COMMA map { ($1,$3)::$5 }
+| NAT ARROW ty_par { [($1,$3)] }
+| NAT ARROW ty_par COMMA map { ($1,$3)::$5 }
+
+join_args:
+	LPAR2 vars RPAR2 COMMA ty_par COMMA LPAR2 map RPAR2 COMMA NAT { ($2,$5,$8,$11) } 

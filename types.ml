@@ -162,21 +162,30 @@ let rec join(xs: int list)(a:ty)(h:map)(y:int):(ty*(int*ty)) =
 let rec extr(a:ty)(b:ty):((ty * ty * map) list) = 
 	match a,b with
 	| _, SkipTy -> [(a, b, [])]
-	| SkipTy, BasicTy(id) -> [(a, b, [])]
-	| Hole(_), BasicTy(id) -> [(a, b, [])]
-	| BasicTy(id), BasicTy(id') when id=id' -> extrIdId id
-	| BasicTy(id), BasicTy(id') -> []
-	| Var(id), BasicTy(id') -> []
-	| SeqTy(a1,a2), BasicTy(id) -> extrSeqId a1 a2 b
-	| ParTy(a1,a2), BasicTy(id) -> extrParId a1 a2 b
+	
+	| SkipTy, BasicTy(_) -> [(a, b, [])]
+	| Hole(_), BasicTy(_) -> [(a, b, [])]
+	| BasicTy(id), BasicTy(id') when id=id' -> extrAtomAtom b
+	| BasicTy(_), BasicTy(_) -> []
+	| Var(_), BasicTy(_) -> []
+	| SeqTy(a1,a2), BasicTy(_) -> extrSeqId a1 a2 b
+	| ParTy(a1,a2), BasicTy(_) -> extrParId a1 a2 b
+	
+	| SkipTy, Var(_) -> [(a, b, [])]
+	| Hole(_), Var(_) -> [(a, b, [])]
+	| BasicTy(id), Var(id') -> []
+	| Var(id), Var(id') when id=id' -> extrAtomAtom b
+	| Var(_), Var(_) -> []
+	| SeqTy(a1,a2), Var(_) -> extrSeqId a1 a2 b
+	| ParTy(a1,a2), Var(_) -> extrParId a1 a2 b
+	
 	| _, SeqTy(b1,b2) -> extrSeq a b1 b2
 	| _, ParTy(b1,b2) -> extrPar a b1 b2
 	| _, Hole(_) -> raise (Fail("not defined"))
-	| _, Var(_) -> raise (Fail("not defined"))
 
-and extrIdId id =
+and extrAtomAtom a =
 	let newId = freshId () in
-		[(Var(newId), SkipTy, [(newId, BasicTy(id))])]
+		[(Var(newId), SkipTy, [(newId, a)])]
 
 and extrSeqId a1 a2 b = 
 	let a1s = extr a1 b in
