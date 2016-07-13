@@ -17,6 +17,14 @@ exception VarsNotFound of int list;;
 
 val print_type: ty -> unit;;
 
+val resetCount: unit -> unit;;
+
+val freshId: unit -> int;;
+
+val substVarsHoles: ty -> map -> ty;;
+
+val substHolesVars: ty -> map -> ty;;
+
 val join: (int list) -> ty -> map -> int -> (ty*(int*ty))
 
 val extract: ty -> ty -> ((ty * ty * map) list);;

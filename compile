@@ -2,6 +2,8 @@ ocamllex  lexer.mll
 ocamlyacc  parser.mly
 ocamlc -c -dtypes types.mli
 ocamlc -c -dtypes types.ml
+ocamlc -c -dtypes extract.mli
+ocamlc -c -dtypes extract.ml
 ocamlc -c -dtypes comm.mli
 ocamlc -c -dtypes comm.ml
 ocamlc -c -dtypes parser.mli
@@ -10,4 +12,4 @@ ocamlc -c -dtypes lexer.ml
 ocamlc -c -dtypes test.mli
 ocamlc -c -dtypes test.ml
 ocamlc -c -dtypes main.ml
-ocamlc -o main types.cmo lexer.cmo parser.cmo test.cmo main.cmo
+ocamlc -o main types.cmo extract.cmo lexer.cmo parser.cmo test.cmo main.cmo
