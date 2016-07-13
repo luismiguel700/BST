@@ -61,7 +61,7 @@ and extrSeq a b1 b2 cont =
 								cont (a'', b2', h1@h2)
 					)
 			else
-				cont (SkipTy, SeqTy(b1', b2), h1)
+				cont (a', SeqTy(b1', b2), h1)
 	)
 
 and extrPar a b1 b2 cont =
