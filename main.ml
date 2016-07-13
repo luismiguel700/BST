@@ -32,14 +32,26 @@ let print_extr (a:ty)(b:ty)(a':ty)(b':ty)(h:map):unit =
 	h ;
 	print_string "] )\n"
 
-let extr_comm_cps (a:ty)(b:ty):unit = 
+let extr_cps_comm (a:ty)(b:ty):unit = 
 	try
 		let (a', b', h) = Extract.extract a b in
 			print_extr a b a' b' h
 	with
-	| FailBasic(id, id') -> print_string ("expecting "^id'^" got "^id^"\n")
-	| FailVarBasic(id, id') -> print_string ("expecting "^id'^" got "^(string_of_int id)^"\n")
 	| Fail(s) -> print_string (s^"\n")
+
+let ok_extr_cps_comm (a:ty)(b:ty):unit = 
+	try
+		let _ = Extract.extract a b in
+			print_extract a b
+	with
+	| Fail(_) -> print_string "ERROR: it should not be possible to "; print_extract a b
+
+let ko_extr_cps_comm (a:ty)(b:ty):unit = 
+	try
+		let _ = Extract.extract a b in
+			print_string "ERROR: it should not be possible to "; print_extract a b
+	with
+	| Fail(_) -> print_extract a b
 
 let extr_comm (a:ty)(b:ty):unit = 
 	let res = Types.extract a b in
@@ -48,23 +60,23 @@ let extr_comm (a:ty)(b:ty):unit =
 		else
 			iter (fun (a', b', h) -> print_extr a b a' b' h) res
 
-let extract_ok_comm (a:ty)(b:ty):unit =
+let ok_extract_comm (a:ty)(b:ty):unit =
 	let res = Types.extract a b in
 		if length res = 0 then 
 		(
-			print_string "ERROR: should not be possible to ";
+			print_string "ERROR: it should not be possible to ";
 			print_extract a b
 		)
 		else
 			print_extract a b
 
-let extract_ko_comm (a:ty)(b:ty):unit =
+let ko_extract_comm (a:ty)(b:ty):unit =
 	let res = Types.extract a b in
 		if length res = 0 then 
 			print_extract a b
 		else
 		(
-			print_string "ERROR: should be possible to ";
+			print_string "ERROR: it should be possible to ";
 			print_extract a b
 		)	
 
@@ -92,7 +104,7 @@ let join_comm xs a h y =
 		print_string "\n"
 	)
 
-let join_ok_comm xs a h y c =
+let ok_join_comm xs a h y c =
 	let (a', (y', b)) = join xs a h y in
 		let res = Types.extract a' c in
 			if length res = 0 then
@@ -120,11 +132,11 @@ let rec top_level lexbuf =
 			(
 				match s with
 				| Quit -> ()
-				| Extract(a,b) -> extr_comm_cps a b; top_level lexbuf
-				| OKextract(a,b) -> extract_ok_comm a b; top_level lexbuf
-				| KOextract(a,b) -> extract_ko_comm a b; top_level lexbuf
+				| Extract(a,b) -> extr_cps_comm a b; top_level lexbuf
+				| OKextract(a,b) -> ok_extr_cps_comm a b; top_level lexbuf
+				| KOextract(a,b) -> ko_extr_cps_comm a b; top_level lexbuf
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
-				| OKjoin(xs, a, h, y, b) -> join_ok_comm xs a h y b; top_level lexbuf
+				| OKjoin(xs, a, h, y, b) -> ok_join_comm xs a h y b; top_level lexbuf
 			)
 		with
 			Parsing.Parse_error ->

@@ -1,10 +1,9 @@
 open Types;;
 
 exception Fail of string;;
-exception FailBasic of string * string;;
-exception FailVarBasic of int * string;;
 
 let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map = 
+(*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
 	match a, b with
 	| _, SkipTy -> cont (a, b, [])
 	
@@ -13,8 +12,8 @@ let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map =
 	| SkipTy, BasicTy(_) -> cont (a, b, [])
 	| Hole(_), BasicTy(_) -> cont (a, b, [])
 	| BasicTy(id), BasicTy(id') when id=id' -> extrAtomAtom a cont
-	| BasicTy(id), BasicTy(id') -> raise (FailBasic(id, id'))
-	| Var(id), BasicTy(id') -> raise (FailVarBasic(id, id'))
+	| BasicTy(id), BasicTy(id') -> raise (Fail("failed at extract("^id^", "^id'^")"))
+	| Var(id), BasicTy(id') -> raise (Fail("failed at extract("^(string_of_int id)^", "^id'^")"))
 	| SeqTy(a1,a2), BasicTy(_) -> extrSeqAtom a1 a2 b cont
 	| ParTy(a1,a2), BasicTy(_) -> extrParAtom a1 a2 b cont
 	
@@ -39,14 +38,33 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
-	extr a1 b 
-	(
-		fun (a1', b', h) ->
-			if b'=SkipTy then
-				cont (ParTy(a1', a2), b', h)
-			else
-				raise (Fail("remaining cases are not implemented"))
-	)
+	try
+		extr a1 b 
+		(
+			fun (a1', b', h1) ->
+				match b' with
+				| SkipTy ->	cont (ParTy(a1', a2), SkipTy, h1)
+				| _ when b'=b -> 
+					extr a2 b 
+					(
+						fun (a2', b', h2) ->
+							match b' with
+							| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
+							| _ when b'=b -> cont (ParTy(a1',a2'), b, [])
+							| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+					)
+				| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+		)
+	with
+	| Fail(s) ->  
+		extr a2 b 
+		(
+			fun (a2', b', h2) ->
+				match b' with
+				| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
+				| _ when b'=b -> raise (Fail(s))
+				| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+		)
 
 and extrSeq a b1 b2 cont =
 	extr a b1 
@@ -56,7 +74,7 @@ and extrSeq a b1 b2 cont =
 				let ah' = substVarsHoles a' h1 in
 					extr ah' b2 
 					(
-						fun (ah'', b2', h2) -> 
+						fun (ah'', b2', h2) ->
 							let a'' = substHolesVars ah'' h1 in
 								cont (a'', b2', h1@h2)
 					)
