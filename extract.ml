@@ -40,48 +40,38 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
-	Stack.push 
-	(
-		fun () ->
-			extr a2 b 
-			(
-				fun (a2', b', h2) ->
-					match b' with
-					| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
-					| _ when b'=b -> raise (Fail("error in extrParAtom"))
-					| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
-			)
-	)
-	!s;
 
-(*	try*)
-		extr a1 b 
+		Stack.push 
 		(
-			fun (a1', b', h1) ->
-				match b' with
-				| SkipTy ->	cont (ParTy(a1', a2), SkipTy, h1)
-				| _ when b'=b -> 
-					extr a2 b 
-					(
-						fun (a2', b', h2) ->
-							match b' with
-							| SkipTy -> raise (Fail("error in extrParAtom")) (* cont (ParTy(a1,a2'), SkipTy, h2) *)
-							| _ when b'=b -> cont (ParTy(a1',a2'), b, [])
-							| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
-					)
-				| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+			fun () ->
+				extr a2 b 
+				(
+					fun (a2', b', h2) ->
+						match b' with
+						| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
+						| _ when b'=b -> raise (Fail("error in extrParAtom"))
+						| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+				)
 		)
-(*	with
-	| Fail(s) ->  
-		extr a2 b 
-		(
-			fun (a2', b', h2) ->
-				match b' with
-				| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
-				| _ when b'=b -> raise (Fail(s))
-				| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
-		)
-*)
+		!s
+	;
+	
+	extr a1 b 
+	(
+		fun (a1', b', h1) ->
+			match b' with
+			| SkipTy ->	cont (ParTy(a1', a2), SkipTy, h1)
+			| _ when b'=b -> 
+				extr a2 b 
+				(
+					fun (a2', b', h2) ->
+						match b' with
+						| SkipTy -> raise (Fail("error in extrParAtom")) (* cont (ParTy(a1,a2'), SkipTy, h2) *)
+						| _ when b'=b -> cont (ParTy(a1',a2'), b, [])
+						| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+				)
+			| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+	)
 
 and extrSeq a b1 b2 cont =
 	extr a b1 

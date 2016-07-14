@@ -23,6 +23,8 @@ val freshId: unit -> int;;
 
 val isSkip: ty -> bool;;
 
+val inFst: ty -> ty -> bool;;
+
 val substVarsHoles: ty -> map -> ty;;
 
 val substHolesVars: ty -> map -> ty;;

@@ -32,63 +32,15 @@ let print_extr (a:ty)(b:ty)(a':ty)(b':ty)(h:map):unit =
 	h ;
 	print_string "] )\n"
 
-let extr_cps_stack_comm (a:ty)(b:ty):unit = 
+let extr_comm (a:ty)(b:ty):unit = 
 	init a b;
 	while hasNext () do
 		try
 			let (a', b', h) = next () in
 				print_extr a b a' b' h
 		with
-		| Fail(_) -> ()
+		| Fail(s) -> () (*print_string (s^"\n")*)
 	done
-
-let extr_cps_comm (a:ty)(b:ty):unit = 
-	try
-		let (a', b', h) = Extract.extract a b in
-			print_extr a b a' b' h
-	with
-	| Fail(s) -> print_string (s^"\n")
-
-let ok_extr_cps_comm (a:ty)(b:ty):unit = 
-	try
-		let _ = Extract.extract a b in
-			print_extract a b
-	with
-	| Fail(_) -> print_string "ERROR: it should not be possible to "; print_extract a b
-
-let ko_extr_cps_comm (a:ty)(b:ty):unit = 
-	try
-		let _ = Extract.extract a b in
-			print_string "ERROR: it should not be possible to "; print_extract a b
-	with
-	| Fail(_) -> print_extract a b
-
-let extr_comm (a:ty)(b:ty):unit = 
-	let res = Types.extract a b in
-		if length res = 0 then 
-			print_string "no solution\n"
-		else
-			iter (fun (a', b', h) -> print_extr a b a' b' h) res
-
-let ok_extract_comm (a:ty)(b:ty):unit =
-	let res = Types.extract a b in
-		if length res = 0 then 
-		(
-			print_string "ERROR: it should not be possible to ";
-			print_extract a b
-		)
-		else
-			print_extract a b
-
-let ko_extract_comm (a:ty)(b:ty):unit =
-	let res = Types.extract a b in
-		if length res = 0 then 
-			print_extract a b
-		else
-		(
-			print_string "ERROR: it should be possible to ";
-			print_extract a b
-		)	
 
 let print_join xs a h y a' y' b =
 	print_string "join( [";
@@ -142,9 +94,9 @@ let rec top_level lexbuf =
 			(
 				match s with
 				| Quit -> ()
-				| Extract(a,b) -> extr_cps_stack_comm a b; top_level lexbuf
-				| OKextract(a,b) -> ok_extr_cps_comm a b; top_level lexbuf
-				| KOextract(a,b) -> ko_extr_cps_comm a b; top_level lexbuf
+				| Extract(a,b) -> extr_comm a b; top_level lexbuf
+				| OKextract(a,b) -> extr_comm a b; top_level lexbuf (* rever *)
+				| KOextract(a,b) -> extr_comm a b; top_level lexbuf (* rever *)
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
 				| OKjoin(xs, a, h, y, b) -> ok_join_comm xs a h y b; top_level lexbuf
 			)
