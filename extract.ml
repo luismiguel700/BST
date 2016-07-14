@@ -2,6 +2,8 @@ open Types;;
 
 exception Fail of string;;
 
+let s:((unit -> ty*ty*map) Stack.t) ref = ref (Stack.create ());;
+
 let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map = 
 (*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
 	match a, b with
@@ -38,7 +40,21 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
-	try
+	Stack.push 
+	(
+		fun () ->
+			extr a2 b 
+			(
+				fun (a2', b', h2) ->
+					match b' with
+					| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
+					| _ when b'=b -> raise (Fail("error in extrParAtom"))
+					| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+			)
+	)
+	!s;
+
+(*	try*)
 		extr a1 b 
 		(
 			fun (a1', b', h1) ->
@@ -49,13 +65,13 @@ and extrParAtom a1 a2 b cont =
 					(
 						fun (a2', b', h2) ->
 							match b' with
-							| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
+							| SkipTy -> raise (Fail("error in extrParAtom")) (* cont (ParTy(a1,a2'), SkipTy, h2) *)
 							| _ when b'=b -> cont (ParTy(a1',a2'), b, [])
 							| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 					)
 				| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 		)
-	with
+(*	with
 	| Fail(s) ->  
 		extr a2 b 
 		(
@@ -65,6 +81,7 @@ and extrParAtom a1 a2 b cont =
 				| _ when b'=b -> raise (Fail(s))
 				| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 		)
+*)
 
 and extrSeq a b1 b2 cont =
 	extr a b1 
@@ -91,3 +108,9 @@ and extrPar a b1 b2 cont =
 ;;
 
 let rec extract(a:ty)(b:ty):ty*ty*map = resetCount (); extr a b (fun (a', b', h) -> (a',b', h))
+
+let rec init(a:ty)(b:ty):unit = s := Stack.create (); Stack.push (fun () -> extract a b) !s
+
+let rec hasNext () = not (Stack.is_empty !s)
+
+let rec next () = (Stack.pop !s) ()

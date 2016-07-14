@@ -32,6 +32,16 @@ let print_extr (a:ty)(b:ty)(a':ty)(b':ty)(h:map):unit =
 	h ;
 	print_string "] )\n"
 
+let extr_cps_stack_comm (a:ty)(b:ty):unit = 
+	init a b;
+	while hasNext () do
+		try
+			let (a', b', h) = next () in
+				print_extr a b a' b' h
+		with
+		| Fail(_) -> ()
+	done
+
 let extr_cps_comm (a:ty)(b:ty):unit = 
 	try
 		let (a', b', h) = Extract.extract a b in
@@ -132,7 +142,7 @@ let rec top_level lexbuf =
 			(
 				match s with
 				| Quit -> ()
-				| Extract(a,b) -> extr_cps_comm a b; top_level lexbuf
+				| Extract(a,b) -> extr_cps_stack_comm a b; top_level lexbuf
 				| OKextract(a,b) -> ok_extr_cps_comm a b; top_level lexbuf
 				| KOextract(a,b) -> ko_extr_cps_comm a b; top_level lexbuf
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
