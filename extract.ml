@@ -40,7 +40,7 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
-
+	if inFst b a2 then
 		Stack.push 
 		(
 			fun () ->
@@ -55,7 +55,7 @@ and extrParAtom a1 a2 b cont =
 		)
 		!s
 	;
-	
+
 	extr a1 b 
 	(
 		fun (a1', b', h1) ->
@@ -97,9 +97,10 @@ and extrPar a b1 b2 cont =
 	)
 ;;
 
-let rec extract(a:ty)(b:ty):ty*ty*map = resetCount (); extr a b (fun (a', b', h) -> (a',b', h))
-
-let rec init(a:ty)(b:ty):unit = s := Stack.create (); Stack.push (fun () -> extract a b) !s
+let rec init(a:ty)(b:ty):unit = 
+	resetCount ();
+	s := Stack.create (); 
+	Stack.push ( fun () -> extr a b (fun (a', b', h) -> (a',b', h)) ) !s
 
 let rec hasNext () = not (Stack.is_empty !s)
 

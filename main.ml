@@ -42,6 +42,40 @@ let extr_comm (a:ty)(b:ty):unit =
 		| Fail(s) -> () (*print_string (s^"\n")*)
 	done
 
+let extr_is_ok (a:ty)(b:ty):bool = 
+	init a b;
+	let ok = ref false in
+	(
+		while hasNext () && (not !ok) do
+			try
+				let _ = next () in
+					ok := true
+			with
+			| Fail(s) -> () (*print_string (s^"\n")*)
+		done;
+		!ok
+	)
+
+let ok_extr_comm (a:ty)(b:ty):unit = 
+	let res = extr_is_ok a b in
+		if res then
+			print_extract a b
+		else
+		(	
+			print_string "ERROR: the following extraction should have succeeded "; 
+			print_extract a b
+		)
+
+let ko_extr_comm (a:ty)(b:ty):unit = 
+	let res = extr_is_ok a b in
+		if res then
+		(	
+			print_string "ERROR: the following extraction should not have succeeded "; 
+			print_extract a b
+		)
+		else
+			print_extract a b
+
 let print_join xs a h y a' y' b =
 	print_string "join( [";
 	iter (fun x -> print_int x; print_string ",") xs ;
@@ -68,19 +102,19 @@ let join_comm xs a h y =
 
 let ok_join_comm xs a h y c =
 	let (a', (y', b)) = join xs a h y in
-		let res = Types.extract a' c in
-			if length res = 0 then
+		let res = extr_is_ok a' c in
+			if res then
 			(
-				print_string "ERROR: the result of ";
 				print_join xs a h y a' y' b;
-				print_string " is not subtype of ";
+				print_string " , ";
 				print_type c;
 				print_string "\n"
 			)
 			else
 			(
+				print_string "ERROR: the result of ";
 				print_join xs a h y a' y' b;
-				print_string " , ";
+				print_string " is not subtype of ";
 				print_type c;
 				print_string "\n"
 			)
@@ -95,8 +129,8 @@ let rec top_level lexbuf =
 				match s with
 				| Quit -> ()
 				| Extract(a,b) -> extr_comm a b; top_level lexbuf
-				| OKextract(a,b) -> extr_comm a b; top_level lexbuf (* rever *)
-				| KOextract(a,b) -> extr_comm a b; top_level lexbuf (* rever *)
+				| OKextract(a,b) -> ok_extr_comm a b; top_level lexbuf
+				| KOextract(a,b) -> ko_extr_comm a b; top_level lexbuf
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
 				| OKjoin(xs, a, h, y, b) -> ok_join_comm xs a h y b; top_level lexbuf
 			)

@@ -11,11 +11,8 @@ type ty =
 
 type map = (int * ty) list (* optimizar mais tarde com hashmaps *)
 
-exception Fail of string;;
 exception VarNotFound of int;;
 exception VarsNotFound of int list;;
-
-let concatmap f l = concat (map f l)
 
 let idCount = ref 0;;
 
@@ -158,107 +155,3 @@ let rec join(xs: int list)(a:ty)(h:map)(y:int):(ty*(int*ty)) =
 				(ParTy(b, c'), h')
 		else
 			raise (VarsNotFound(xs))
-
-let rec extr(a:ty)(b:ty):((ty * ty * map) list) = 
-	match a,b with
-	| _, SkipTy -> [(a, b, [])]
-	
-	| SkipTy, BasicTy(_) -> [(a, b, [])]
-	| Hole(_), BasicTy(_) -> [(a, b, [])]
-	| BasicTy(id), BasicTy(id') when id=id' -> extrAtomAtom b
-	| BasicTy(_), BasicTy(_) -> []
-	| Var(_), BasicTy(_) -> []
-	| SeqTy(a1,a2), BasicTy(_) -> extrSeqId a1 a2 b
-	| ParTy(a1,a2), BasicTy(_) -> extrParId a1 a2 b
-	
-	| SkipTy, Var(_) -> [(a, b, [])]
-	| Hole(_), Var(_) -> [(a, b, [])]
-	| BasicTy(id), Var(id') -> []
-	| Var(id), Var(id') when id=id' -> extrAtomAtom b
-	| Var(_), Var(_) -> []
-	| SeqTy(a1,a2), Var(_) -> extrSeqId a1 a2 b
-	| ParTy(a1,a2), Var(_) -> extrParId a1 a2 b
-	
-	| _, SeqTy(b1,b2) -> extrSeq a b1 b2
-	| _, ParTy(b1,b2) -> extrPar a b1 b2
-	| _, Hole(_) -> raise (Fail("not defined"))
-
-and extrAtomAtom a =
-	let newId = freshId () in
-		[(Var(newId), SkipTy, [(newId, a)])]
-
-and extrSeqId a1 a2 b = 
-	let a1s = extr a1 b in
-		concatmap
-		(
-			fun (a1', b', h) ->
-				match b' with
-				| SkipTy -> [(SeqTy(a1',a2), b', h)]
-				| _ ->
-					let a2s = extr a2 b' in
-						map (fun (a2', b', h) -> (SeqTy(a1', a2'), b', h)) a2s
-		)
-		a1s
-
-and extrParId a1 a2 b =
-	let a1s = extr a1 b in
-	let a2s = extr a2 b in
-		let a1s' = filter (fun (a1', b', _) -> b'=SkipTy) a1s in
-		let a2s' = filter (fun (a2', b'', _) -> b''=SkipTy) a2s in
-			let res1 = map (fun (a1', b', h1) -> (ParTy(a1', a2), SkipTy, h1)) a1s' in
-			let res2 = map (fun (a2', b'', h2) -> (ParTy(a1, a2'), SkipTy, h2)) a2s' in
-			let res3 = 
-				concatmap
-				(
-					fun (a1', b', h1) -> 
-						concatmap 
-						(
-							fun (a2', b'', h2) -> 
-								if b'=b && b''=b then
-									[(ParTy(a1',a2'), b, [])]
-								else
-									[]
-						)
-						a2s
-				)
-				a1s
-			in
-				append (append res1 res2) res3
-
-and extrSeq a b1 b2 =
-	let a_s = extr a b1 in
-		concatmap
-		(
-			fun (a', b1', h1) ->
-				if isSkip b1' then
-					let ah' = substVarsHoles a' h1 in
-						let a_s' = extr ah' b2 in
-						map
-						(
-							fun (ah'', b2', h2) ->
-								let a'' = substHolesVars ah'' h1 in
-									(a'', b2', h1@h2)
-						)
-						a_s'
-				else
-					[(a', SeqTy(b1',b2), h1)]	
-		)
-		a_s
-
-and extrPar a b1 b2 =
-	let a_s = extr a b1 in
-		concatmap
-		(
-			fun (a', b1', h1) ->
-				let a_s' = extr a' b2 in
-					map
-					(
-						fun (a'', b2', h2) -> (a'', ParTy(b1',b2'), h1@h2)
-					)
-					a_s'
-		)
-		a_s
-;;
-
-let extract a b = resetCount (); extr a b
-
