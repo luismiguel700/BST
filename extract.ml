@@ -87,7 +87,7 @@ and extrSeq a b1 b2 cont =
 	extr a b1 
 	(
 		fun (a', b1', h1) -> 
-			if b1'=SkipTy then
+			if isSkip b1' then
 				let ah' = substVarsHoles a' h1 in
 					extr ah' b2 
 					(
