@@ -1,8 +1,11 @@
 open Types;;
+open Assertions;;
+open Join;;
 
 type comm =
 | Quit
 | Extract of ty * ty
+| ExtractA of assertion * assertion
 | OKextract of ty * ty
 | KOextract of ty * ty
 | Join of (int list) * ty * map * int 

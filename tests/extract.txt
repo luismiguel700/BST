@@ -1,11 +1,11 @@
-OKextr a|b, a;b;;
-KOextr a;b, a|b;;
-OKextr a;b|c;d, (a|c);(b|d);;
-KOextr (a|c);(b|d), a;b|c;d;;
-OKextr (a;b|c;d);(e;f|g;h) | (i;j|k;l);(m;n|o;p), ((a|c);(b|d) | (i|k);(j|l)) ; ((e|g);(f|h)|(m|o);(n|p));;
-KOextr ((a|c);(b|d) | (i|k);(j|l)) ; ((e|g);(f|h)|(m|o);(n|p)), (a;b|c;d);(e;f|g;h) | (i;j|k;l);(m;n|o;p);;
+OKextr a|b a;b;;
+KOextr a;b a|b;;
+OKextr a;b|c;d (a|c);(b|d);;
+KOextr (a|c);(b|d) a;b|c;d;;
+OKextr (a;b|c;d);(e;f|g;h) | (i;j|k;l);(m;n|o;p) ((a|c);(b|d) | (i|k);(j|l)) ; ((e|g);(f|h)|(m|o);(n|p));;
+KOextr ((a|c);(b|d)|(i|k);(j|l)) ; ((e|g);(f|h)|(m|o);(n|p)) (a;b|c;d);(e;f|g;h) | (i;j|k;l);(m;n|o;p);;
 
-OKextr a;(b|c;d)|e, e|a;(b|c);d;;
-KOextr a;(b|c);d, a;(b|c;d);;
+OKextr a;(b|c;d)|e e|a;(b|c);d;;
+KOextr a;(b|c);d a;(b|c;d);;
 
 quit;;

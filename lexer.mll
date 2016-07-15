@@ -12,6 +12,7 @@ rule token = parse
 | eof   			{ EOF }
 
 | "extr"       { EXTR }
+| "extr_a"       { EXTR_A }
 | "OKextr"       { OK_EXTR }
 | "KOextr"       { KO_EXTR }
 | "join"       { JOIN }  
@@ -24,6 +25,7 @@ rule token = parse
 | "0"          { STOPT }
 | "|"  		  { PAR }
 | ";"  		  { SEQ }
+| ":"		{ COLON }
 | "!"  		  { BANG }
 | "<:" 		  { SUBT }
 

@@ -1,25 +1,53 @@
 open Types;;
 
+type map = (int * ty) list (* optimizar mais tarde com hashmaps *)
+
 exception Fail of string;;
 
 let s:((unit -> ty*ty*map) Stack.t) ref = ref (Stack.create ());;
+
+let idCount = ref 0;;
+
+let resetCount () = idCount := 0
+
+let freshId () = (idCount := (!idCount+1)); !idCount
+
+let rec substVarsHoles a h =
+	match h with
+	| [] -> a
+	| (id,_)::tail -> substVarsHoles (subst a (VarTy(id)) (HoleTy(id))) tail
+
+let rec substHolesVars a h =
+	match h with
+	| [] -> a
+	| (id,_)::tail -> substHolesVars (subst a (HoleTy(id)) (VarTy(id))) tail
 
 let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map = 
 (*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
 	match a, b with
 	| _, SkipTy -> cont (a, b, [])
 	
-	| _, Hole(_) -> raise (Fail("not defined"))
+	| _, HoleTy(_) -> raise (Fail("not defined"))
+
+	| _, VarTy(_) -> raise (Fail("not defined"))
+
+	| SkipTy, FunTy(_, _) -> cont (a, b, [])
+	| HoleTy(_), FunTy(_, _) -> cont (a, b, [])
+	| VarTy(id), FunTy(_, _) -> raise (Fail("failed at extract("^(string_of_int id)^", fun)"))	
+	| FunTy(x, y), FunTy(x', y') when x=x' && y=y' -> extrAtomAtom a cont (* TODO: x'<:x /\ y<:y' *)
+	| FunTy(x, y), FunTy(x', y') -> raise (Fail("failed at extract(fun, fun)"))
+	| BasicTy(id), FunTy(_,_) -> raise (Fail("failed at extract("^id^", fun)"))
+	| SeqTy(a1, a2), FunTy(_, _) -> extrSeqAtom a1 a2 b cont
+	| ParTy(a1, a2), FunTy(_, _) -> extrParAtom a1 a2 b cont
 
 	| SkipTy, BasicTy(_) -> cont (a, b, [])
-	| Hole(_), BasicTy(_) -> cont (a, b, [])
+	| HoleTy(_), BasicTy(_) -> cont (a, b, [])
+	| VarTy(id), BasicTy(id') -> raise (Fail("failed at extract("^(string_of_int id)^", "^id'^")"))
+	| FunTy(_,_), BasicTy(id) -> raise (Fail("failed at extract(fun, "^id^")"))
 	| BasicTy(id), BasicTy(id') when id=id' -> extrAtomAtom a cont
 	| BasicTy(id), BasicTy(id') -> raise (Fail("failed at extract("^id^", "^id'^")"))
-	| Var(id), BasicTy(id') -> raise (Fail("failed at extract("^(string_of_int id)^", "^id'^")"))
-	| SeqTy(a1,a2), BasicTy(_) -> extrSeqAtom a1 a2 b cont
-	| ParTy(a1,a2), BasicTy(_) -> extrParAtom a1 a2 b cont
-	
-	| _, Var(_) -> raise (Fail("not defined"))
+	| SeqTy(a1, a2), BasicTy(_) -> extrSeqAtom a1 a2 b cont
+	| ParTy(a1, a2), BasicTy(_) -> extrParAtom a1 a2 b cont
 
 	| _, SeqTy(b1,b2) -> extrSeq a b1 b2 cont
 	
@@ -27,14 +55,14 @@ let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map =
 
 and extrAtomAtom a cont =
 	let newId = freshId () in 
-		cont (Var(newId), Var(newId), [(newId, a)])
+		cont (VarTy(newId), VarTy(newId), [(newId, a)])
 
 and extrSeqAtom a1 a2 b cont =
 	extr a1 b 
 	(
 		fun (a1', b', h1) -> 
 			match b' with
-			| Var(_) -> cont (SeqTy(a1', a2), b', h1)
+			| VarTy(_) -> cont (SeqTy(a1', a2), b', h1)
 			| _ when b'=b -> extr a2 b (fun (a2', b', h2) -> cont (SeqTy(a1',a2'), b', h2))
 			| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 	)
@@ -48,7 +76,7 @@ and extrParAtom a1 a2 b cont =
 				(
 					fun (a2', b', h2) ->
 						match b' with
-						| Var(_) -> cont (ParTy(a1,a2'), b', h2)
+						| VarTy(_) -> cont (ParTy(a1,a2'), b', h2)
 						| _ when b'=b -> raise (Fail("error in extrParAtom"))
 						| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 				)
@@ -60,13 +88,13 @@ and extrParAtom a1 a2 b cont =
 	(
 		fun (a1', b', h1) ->
 			match b' with
-			| Var(_) ->	cont (ParTy(a1', a2), b', h1)
+			| VarTy(_) ->	cont (ParTy(a1', a2), b', h1)
 			| _ when b'=b -> 
 				extr a2 b 
 				(
 					fun (a2', b', h2) ->
 						match b' with
-						| Var(_) -> raise (Fail("error in extrParAtom")) (* cont (ParTy(a1,a2'), SkipTy, h2) *)
+						| VarTy(_) -> raise (Fail("error in extrParAtom")) (* cont (ParTy(a1,a2'), SkipTy, h2) *)
 						| _ when b'=b -> cont (ParTy(a1',a2'), b, [])
 						| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 				)
