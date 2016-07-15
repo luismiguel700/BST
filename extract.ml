@@ -27,14 +27,14 @@ let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map =
 
 and extrAtomAtom a cont =
 	let newId = freshId () in 
-		cont (Var(newId), SkipTy, [(newId, a)])
+		cont (Var(newId), Var(newId), [(newId, a)])
 
 and extrSeqAtom a1 a2 b cont =
 	extr a1 b 
 	(
 		fun (a1', b', h1) -> 
 			match b' with
-			| SkipTy -> cont (SeqTy(a1', a2), SkipTy, h1)
+			| Var(_) -> cont (SeqTy(a1', a2), b', h1)
 			| _ when b'=b -> extr a2 b (fun (a2', b', h2) -> cont (SeqTy(a1',a2'), b', h2))
 			| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 	)
@@ -48,7 +48,7 @@ and extrParAtom a1 a2 b cont =
 				(
 					fun (a2', b', h2) ->
 						match b' with
-						| SkipTy -> cont (ParTy(a1,a2'), SkipTy, h2)
+						| Var(_) -> cont (ParTy(a1,a2'), b', h2)
 						| _ when b'=b -> raise (Fail("error in extrParAtom"))
 						| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 				)
@@ -60,13 +60,13 @@ and extrParAtom a1 a2 b cont =
 	(
 		fun (a1', b', h1) ->
 			match b' with
-			| SkipTy ->	cont (ParTy(a1', a2), SkipTy, h1)
+			| Var(_) ->	cont (ParTy(a1', a2), b', h1)
 			| _ when b'=b -> 
 				extr a2 b 
 				(
 					fun (a2', b', h2) ->
 						match b' with
-						| SkipTy -> raise (Fail("error in extrParAtom")) (* cont (ParTy(a1,a2'), SkipTy, h2) *)
+						| Var(_) -> raise (Fail("error in extrParAtom")) (* cont (ParTy(a1,a2'), SkipTy, h2) *)
 						| _ when b'=b -> cont (ParTy(a1',a2'), b, [])
 						| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 				)
@@ -77,13 +77,13 @@ and extrSeq a b1 b2 cont =
 	extr a b1 
 	(
 		fun (a', b1', h1) -> 
-			if isSkip b1' then
+			if consistsOfVars b1' then
 				let ah' = substVarsHoles a' h1 in
 					extr ah' b2 
 					(
 						fun (ah'', b2', h2) ->
 							let a'' = substHolesVars ah'' h1 in
-								cont (a'', b2', h1@h2)
+								cont (a'', SeqTy(b1', b2'), h1@h2)
 					)
 			else
 				cont (a', SeqTy(b1', b2), h1)

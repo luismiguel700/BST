@@ -1,13 +1,22 @@
 open List;;
 
 type ty = 
-	| BasicTy of string
-	| SkipTy
-	| SeqTy of ty * ty
-	| ParTy of ty * ty
-	| Var of int
-	| Hole of int
+| BasicTy of string
+| SkipTy
+| SeqTy of ty * ty
+| ParTy of ty * ty
+| Var of int
+| Hole of int
 ;;
+
+type assertion =
+| Skip
+| Hole of int
+| Var of int
+| Basic of string * ty
+| Seq of assertion * assertion
+| Par of assertion * assertion
+;; 
 
 type map = (int * ty) list (* optimizar mais tarde com hashmaps *)
 
@@ -81,6 +90,16 @@ let rec containsVars a xs =
 	| Var(id) -> mem id xs
 	| SeqTy(a1,a2) -> containsVars a1 xs || containsVars a2 xs
 	| ParTy(a1,a2) -> containsVars a1 xs || containsVars a2 xs
+
+let rec consistsOfVars a =
+	match a with
+	| SkipTy -> false
+	| BasicTy(_) -> false
+	| Hole(_) -> false
+	| Var(_) -> true
+	| SeqTy(a1,a2) -> consistsOfVars a1 && consistsOfVars a2
+	| ParTy(a1,a2) -> consistsOfVars a1 && consistsOfVars a2
+
 
 (* A{C/b} *)
 let rec subst a b c =

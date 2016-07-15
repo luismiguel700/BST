@@ -1,12 +1,12 @@
 open List;;
 
 type ty = 
-	| BasicTy of string
-	| SkipTy
-	| SeqTy of ty * ty
-	| ParTy of ty * ty
-	| Var of int
-	| Hole of int
+| BasicTy of string
+| SkipTy
+| SeqTy of ty * ty
+| ParTy of ty * ty
+| Var of int
+| Hole of int
 ;;
 
 type map = (int * ty) list (* optimizar mais tarde com hashmaps *)
@@ -23,6 +23,8 @@ val freshId: unit -> int;;
 val isSkip: ty -> bool;;
 
 val inFst: ty -> ty -> bool;;
+
+val consistsOfVars: ty -> bool;;
 
 val substVarsHoles: ty -> map -> ty;;
 
