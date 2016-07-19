@@ -1,5 +1,6 @@
 open Types;;
 open Assertions;;
+open Exp;;
 open Join;;
 
 type comm =
@@ -9,4 +10,6 @@ type comm =
 | OKextract of ty * ty
 | KOextract of ty * ty
 | Join of (int list) * ty * map * int 
-| OKjoin of (int list) * ty * map * int * ty ;;
+| OKjoin of (int list) * ty * map * int * ty 
+| Typecheck of assertion * exp * ty
+;;

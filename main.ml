@@ -1,10 +1,11 @@
 open Types;;
 open Assertions;;
+open Exp;;
 open Extract;;
 open Extract_a;;
+open Join;;
 open Comm;;
 open List;;
-open Join;;
 
 let print_extract (a:ty)(b:ty):unit =
 	print_string "extract(";
@@ -159,6 +160,15 @@ let ok_join_comm xs a h y c =
 				print_string "\n"
 			)
 
+let typecheck_comm a e t =
+	print_string "type(";
+	print_assertion a;
+	print_string ", ";
+	print_exp e;
+	print_string ", ";
+	print_type t;
+	print_string ")\n"
+
 let rec top_level lexbuf =
 	print_string "> " ;
 	flush stdout;
@@ -174,6 +184,7 @@ let rec top_level lexbuf =
 				| KOextract(a, b) -> ko_extr_comm a b; top_level lexbuf
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
 				| OKjoin(xs, a, h, y, b) -> ok_join_comm xs a h y b; top_level lexbuf
+				| Typecheck(a, e, t) -> typecheck_comm a e t; top_level lexbuf
 			)
 		with
 			Parsing.Parse_error ->

@@ -4,6 +4,8 @@ open Types
 ;;
 open Assertions
 ;;
+open Exp
+;;
 open Comm
 ;;
 
@@ -17,6 +19,7 @@ open Comm
 %token KO_EXTR
 %token JOIN
 %token OK_JOIN
+%token TYPE
 
 %token PAR
 %token SEQ
@@ -32,10 +35,17 @@ open Comm
 %token LPAR2
 %token RPAR2
 %token ARROW
+%token EQ
 
+%token DOT
 %token COMMA
 %token COLON
+%token DOUBLE_COLON
 %token TERM
+
+%token LET
+%token FUN
+%token IN
 
 %token BOOLT
 %token INTT
@@ -60,12 +70,15 @@ command TERM { $1 }
 
 command:
 | QUIT { Quit }
-| EXTR ty_par ty_par { Extract($2,$3) }
-| EXTR_A par par { ExtractA($2,$3) }
-| OK_EXTR ty_par ty_par { OKextract($2,$3) }
-| KO_EXTR ty_par ty_par { KOextract($2,$3) }
-| JOIN join_args { let (xs,a,h,y) = $2 in Join(xs,a,h,y) }
-| OK_JOIN join_args ty_par { let (xs,a,h,y) = $2 in OKjoin(xs,a,h,y,$3) }
+| EXTR ty_par ty_par { Extract($2, $3) }
+| EXTR_A par par { ExtractA($2, $3) }
+| OK_EXTR ty_par ty_par { OKextract($2, $3) }
+| KO_EXTR ty_par ty_par { KOextract($2, $3) }
+| JOIN join_args { let (xs, a, h, y) = $2 in Join(xs, a, h, y) }
+| OK_JOIN join_args ty_par { let (xs, a, h, y) = $2 in OKjoin(xs, a, h, y, $3) }
+| TYPE par LPAR exp RPAR ty_par { Typecheck($2, $4, $6) } 
+
+/******** TYPES ********/
 
 ty_par:
   ty_seq              { $1 }
@@ -85,6 +98,10 @@ ty_bas:
 | ID { BasicTy($1) }
 | LPAR ty_par RPAR { $2 }
 
+/***********************/
+
+/***** ASSERTIONS *****/
+
 par:
   seq              { $1 }
 | par PAR seq   { Par($1,$3) }
@@ -98,6 +115,26 @@ bas:
 | NAT { Var($1) }
 | ID COLON ty_fun { Basic($1, $3) }
 | LPAR par RPAR { $2 }
+
+/***********************/
+
+/***** EXPRESSIONS *****/
+
+exp:
+| call_exp				{ $1 }
+| FUN ID ARROW exp 		{ Fun($2, $4) }
+| LET ID EQ exp IN exp 	{ Let($2, $4, $6) }
+
+call_exp:
+| id_exp				{ $1 }
+| call_exp id_exp		{ Call($1, $2) }
+
+id_exp:
+| ID 					{ Id($1) }
+| id_exp DOT ID 		{ Select($1, $3) }
+| LPAR exp RPAR 		{ $2 }
+
+/***********************/
 
 vars:
 | NAT { [$1] }

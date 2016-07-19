@@ -17,6 +17,7 @@ rule token = parse
 | "KOextr"       { KO_EXTR }
 | "join"       { JOIN }  
 | "OKjoin"     { OK_JOIN } 
+| "type"     { TYPE } 
 | "quit"          { QUIT } 
 
 | "bool"          { BOOLT }
@@ -29,13 +30,20 @@ rule token = parse
 | "!"  		  { BANG }
 | "<:" 		  { SUBT }
 
+| "." 		  { DOT }
 | "," 		  { COMMA }
 | ";;" 		  { TERM }
+| "::" 		  { DOUBLE_COLON }
 | "(" 		  { LPAR }
 | ")" 		  { RPAR }
 | "[" 		  { LPAR2 }
 | "]" 		  { RPAR2 }
 | "->" 		  { ARROW }
+| "=" 		  { EQ }
+
+| "let" 	  { LET }
+| "in" 		  { IN }
+| "fun" 	  { FUN }
 
 | ['1'-'9']+ ['0'-'9']* { NAT(int_of_string (Lexing.lexeme lexbuf)) }
 | ['0'-'9']+                      { INT(int_of_string (Lexing.lexeme lexbuf)) }

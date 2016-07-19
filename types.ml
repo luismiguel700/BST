@@ -16,21 +16,25 @@ let rec print_type_lev t l =
 	| HoleTy(id) -> print_string ("0_"^(string_of_int id))
 	| VarTy(id) -> print_int id
 	| FunTy(a, b) -> 
-		print_type_lev a 1;
+		print_type_lev a 2;
 		print_string "->";
-		print_type_lev b 1;
+		print_type_lev b 2;
 	| BasicTy(id) -> print_string id
 	| SeqTy(a, b) -> 
+		if l>1 then
+			print_string "(";
 		print_type_lev a 1;
 		print_string ";";
 		print_type_lev b 1;
+		if l>1 then
+			print_string ")"
 	| ParTy(a,b) -> 
-		if (l>0) then 
+		if l>0 then 
 			print_string "(";
 		print_type_lev a 0;
 		print_string "|";
 		print_type_lev b 0;
-		if (l>0) then
+		if l>0 then
 			print_string ")"
 ;;
 
