@@ -45,6 +45,7 @@ open Comm
 
 %token LET
 %token FUN
+%token SOME
 %token IN
 
 %token BOOLT
@@ -56,7 +57,7 @@ open Comm
 %token <int> INT
 %token <float> FLOAT
 %token <string> STRING
-%token <string> ID
+%token <int> ID
 
 %type <Comm.comm> main
 
@@ -91,6 +92,7 @@ ty2:
 ty3:
 | ty_basic { $1 }
 | ty3 ARROW ty_basic { FunTy($1, $3) }
+| SOME ARROW ty_basic { FunTy(SomeTy(ref None), $3) }
 
 ty_basic:
 | STOPT { SkipTy }
@@ -103,12 +105,12 @@ ty_basic:
 /***** ASSERTIONS *****/
 
 assertion:
-  assertion2              	{ $1 }
-| assertion PAR assertion2	{ Par($1,$3) }
+  assertion2 { $1 }
+| assertion PAR assertion2 { Par($1,$3) }
 
 assertion2:
-  assertion_basic              		{ $1 }
-| assertion2 SEQ assertion_basic	{ Seq($1,$3) }
+  assertion_basic { $1 }
+| assertion2 SEQ assertion_basic { Seq($1,$3) }
 
 assertion_basic:
 | STOPT { Skip }
@@ -121,18 +123,18 @@ assertion_basic:
 /***** EXPRESSIONS *****/
 
 exp:
-| exp2				{ $1 }
-| FUN ID ARROW exp 		{ Fun($2, $4) }
-| LET ID EQ exp IN exp 	{ Let($2, $4, $6) }
+| exp2 { $1 }
+| FUN LPAR ID COLON ty RPAR ARROW exp { Fun($3, $5, $8) }
+| LET ID EQ exp IN exp { Let($2, $4, $6) }
 
 exp2:
-| exp_basic				{ $1 }
-| exp2 exp_basic		{ Call($1, $2) }
+| exp_basic { $1 }
+| exp2 exp_basic { Call($1, $2) }
 
 exp_basic:
-| ID 					{ Id($1) }
-| exp_basic DOT ID 		{ Select($1, $3) }
-| LPAR exp RPAR 		{ $2 }
+| ID { Id($1) }
+| exp_basic DOT ID { Select($1, $3) }
+| LPAR exp RPAR { $2 }
 
 /***********************/
 

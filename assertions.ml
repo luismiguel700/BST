@@ -5,35 +5,10 @@ type assertion =
 | Skip
 | Hole of int
 | Var of int
-| Basic of string * ty
+| Basic of int * ty
 | Seq of assertion * assertion
 | Par of assertion * assertion
 ;;
-
-let rec print_assertion_lev t l = 
-	match t with
-	| Skip -> print_string "0"
-	| Hole(id) -> print_string ("0_"^(string_of_int id))
-	| Var(id) -> print_int id
-	| Basic(id, t) -> 
-		print_string id;
-		print_string ":";
-		print_type t;
-	| Seq(a, b) -> 
-		print_assertion_lev a 1;
-		print_string ";";
-		print_assertion_lev b 1;
-	| Par(a,b) -> 
-		if (l>0) then 
-			print_string "(";
-		print_assertion_lev a 0;
-		print_string "|";
-		print_assertion_lev b 0;
-		if (l>0) then
-			print_string ")"
-;;
-
-let print_assertion t = print_assertion_lev t 0;;
 
 (* A<:>0 ? *)
 let rec isSkip a =

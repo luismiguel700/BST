@@ -6,6 +6,7 @@ open Extract_a;;
 open Join;;
 open Comm;;
 open List;;
+open Unparser;;
 
 let print_extract (a:ty)(b:ty):unit =
 	print_string "extract(";
@@ -65,13 +66,25 @@ let print_extr_a (a:assertion)(b:assertion)(a':assertion)(b':assertion)(h:Extrac
 
 let extr_comm (a:ty)(b:ty):unit = 
 	Extract.init a b;
-	while Extract.hasNext () do
-		try
-			let (a', b', h) = Extract.next () in
-				print_extr a b a' b' h
-		with
-		| Extract.Fail(s) -> () (*print_string (s^"\n")*)
-	done
+	let solution = ref false in
+	(
+		while Extract.hasNext () do
+			try
+				let (a', b', h) = Extract.next () in
+				(	
+					solution := true;
+					print_extr a b a' b' h
+				)
+			with
+			| Extract.Fail(s) -> print_string (s^"\n") (*print_string (s^"\n")*)
+		done;
+
+		if not !solution then
+		(
+			print_string "Failed to \n"; 
+			print_extract a b
+		)
+	)
 
 let extr_is_ok (a:ty)(b:ty):bool = 
 	Extract.init a b;

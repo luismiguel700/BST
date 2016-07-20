@@ -6,16 +6,18 @@ ocamlc -c -dtypes assertions.mli
 ocamlc -c -dtypes assertions.ml
 ocamlc -c -dtypes exp.mli
 ocamlc -c -dtypes exp.ml
+ocamlc -c -dtypes comm.mli
+ocamlc -c -dtypes comm.ml
+ocamlc -c -dtypes parser.mli
+ocamlc -c -dtypes parser.ml
+ocamlc -c -dtypes lexer.ml
+ocamlc -c -dtypes unparser.mli
+ocamlc -c -dtypes unparser.ml
 ocamlc -c -dtypes extract.mli
 ocamlc -c -dtypes extract.ml
 ocamlc -c -dtypes extract_a.mli
 ocamlc -c -dtypes extract_a.ml
 ocamlc -c -dtypes join.mli
 ocamlc -c -dtypes join.ml
-ocamlc -c -dtypes comm.mli
-ocamlc -c -dtypes comm.ml
-ocamlc -c -dtypes parser.mli
-ocamlc -c -dtypes parser.ml
-ocamlc -c -dtypes lexer.ml
 ocamlc -c -dtypes main.ml
-ocamlc -o main types.cmo assertions.cmo exp.cmo extract.cmo extract_a.cmo join.cmo comm.mli lexer.cmo parser.cmo main.cmo
+ocamlc -o main types.cmo assertions.cmo exp.cmo comm.cmo parser.cmo lexer.cmo unparser.cmo extract.cmo extract_a.cmo join.cmo main.cmo

@@ -18,6 +18,7 @@ let rec split a x =
 	| HoleTy(_) -> raise (VarNotFound(x))
 	| VarTy(id) when id=x -> (SkipTy, SkipTy)
 	| VarTy(_) -> raise (VarNotFound(x))
+	| SomeTy(_) -> raise (VarNotFound(x))
 	| FunTy(_, _) -> raise (VarNotFound(x))
 	| BasicTy(_) -> raise (VarNotFound(x))
 	| SeqTy(b, c) -> 
@@ -39,6 +40,7 @@ let rec join(xs: int list)(a:ty)(h:map)(y:int):(ty*(int*ty)) =
 	| SkipTy -> raise (VarsNotFound(xs))
 	| HoleTy(_) -> raise (VarsNotFound(xs))
 	| VarTy(id) -> if mem id xs then (VarTy(y), (y, mapFind h id)) else raise (VarsNotFound(xs))
+	| SomeTy(_) -> raise (VarsNotFound(xs))
 	| FunTy(_, _) -> raise (VarsNotFound(xs))	
 	| BasicTy(_) -> raise (VarsNotFound(xs))
 	| SeqTy(b, c) ->

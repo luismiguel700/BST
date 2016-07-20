@@ -1,9 +1,9 @@
-type exp =
-| Id of string
-| Fun of string * exp
-| Call of exp * exp
-| Let of string * exp * exp
-| Select of exp * string
-;;
+open Types;;
 
-val print_exp: exp -> unit;;
+type exp =
+| Id of int
+| Fun of int * ty * exp
+| Call of exp * exp
+| Let of int * exp * exp
+| Select of exp * int
+;;

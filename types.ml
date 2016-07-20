@@ -1,44 +1,19 @@
 open List;;
 
-type ty = 
+type ty =
 | SkipTy
 | HoleTy of int
 | VarTy of int
+| SomeTy of some ref
 | FunTy of ty * ty
-| BasicTy of string
+| BasicTy of int
 | SeqTy of ty * ty
 | ParTy of ty * ty
+and
+some =
+| None
+| Some of ty
 ;;
-
-let rec print_type_lev t l = 
-	match t with
-	| SkipTy -> print_string "0"
-	| HoleTy(id) -> print_string ("0_"^(string_of_int id))
-	| VarTy(id) -> print_int id
-	| FunTy(a, b) -> 
-		print_type_lev a 2;
-		print_string "->";
-		print_type_lev b 2;
-	| BasicTy(id) -> print_string id
-	| SeqTy(a, b) -> 
-		if l>1 then
-			print_string "(";
-		print_type_lev a 1;
-		print_string ";";
-		print_type_lev b 1;
-		if l>1 then
-			print_string ")"
-	| ParTy(a,b) -> 
-		if l>0 then 
-			print_string "(";
-		print_type_lev a 0;
-		print_string "|";
-		print_type_lev b 0;
-		if l>0 then
-			print_string ")"
-;;
-
-let print_type t = print_type_lev t 0;;
 
 (* A<:>0 ? *)
 let rec isSkip a =
@@ -46,6 +21,7 @@ let rec isSkip a =
 	| SkipTy -> true
 	| HoleTy(_) -> true
 	| VarTy(_) -> false
+	| SomeTy(_) -> false
 	| FunTy(_) -> false
 	| BasicTy(_) -> false
 	| SeqTy(a1,a2) -> isSkip a1 && isSkip a2
@@ -57,6 +33,7 @@ let rec inFst t a =
 	| SkipTy -> false
 	| HoleTy(_) -> t=a
 	| VarTy(_) -> t=a
+	| SomeTy(_) -> false
 	| FunTy(_, _) -> t=a
 	| BasicTy(_) -> t=a
 	| SeqTy(a1,a2) -> 
@@ -73,20 +50,22 @@ let rec containsVars a xs =
 	| SkipTy -> false
 	| HoleTy(_) -> false
 	| VarTy(id) -> mem id xs
+	| SomeTy(_) -> false
 	| FunTy(_, _) -> false
 	| BasicTy(_) -> false
 	| SeqTy(a1,a2) -> containsVars a1 xs || containsVars a2 xs
 	| ParTy(a1,a2) -> containsVars a1 xs || containsVars a2 xs
 
-let rec consistsOfVars a =
+let rec consistsOfVars a vars =
 	match a with
-	| SkipTy -> false
+	| SkipTy -> true
 	| HoleTy(_) -> false
-	| VarTy(_) -> true
-	| FunTy(_, _) -> false
+	| VarTy(id) -> exists (fun (id', _) -> id=id') vars
+	| SomeTy(_) -> false
+	| FunTy(t, u) -> consistsOfVars t vars && consistsOfVars u vars
 	| BasicTy(_) -> false
-	| SeqTy(a1,a2) -> consistsOfVars a1 && consistsOfVars a2
-	| ParTy(a1,a2) -> consistsOfVars a1 && consistsOfVars a2
+	| SeqTy(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
+	| ParTy(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
 
 (* A{C/b} *)
 let rec subst a b c =
@@ -94,6 +73,7 @@ let rec subst a b c =
 	| SkipTy -> a
 	| HoleTy(_) -> if a=b then c else a
 	| VarTy(_) -> if a=b then c else a
+	| SomeTy(_) -> a
 	| FunTy(_, _) -> if a=b then c else a
 	| BasicTy(_) -> if a=b then c else a
 	| SeqTy(a1,a2) -> SeqTy(subst a1 b c, subst a2 b c)

@@ -5,12 +5,10 @@ type assertion =
 | Skip
 | Hole of int
 | Var of int
-| Basic of string * ty
+| Basic of int * ty
 | Seq of assertion * assertion
 | Par of assertion * assertion
 ;;
-
-val print_assertion: assertion -> unit;;
 
 val isSkip: assertion -> bool;;
 

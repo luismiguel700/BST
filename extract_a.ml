@@ -34,9 +34,9 @@ let rec extr(a:assertion)(b:assertion)(cont: res_extr_a->res_extr_a):res_extr_a 
 
 	| Skip, Basic(_, _) -> cont (a, b, [])
 	| Hole(_), Basic(_, _) -> cont (a, b, [])
-	| Var(id), Basic(id', _) -> raise (Fail("failed at extract("^(string_of_int id)^", "^id'^")"))
+	| Var(id), Basic(id', _) -> raise (Fail("failed at extract("^(string_of_int id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
 	| Basic(id, t), Basic(id', t') when id=id' && t=t' -> extrAtomAtom a cont (* rever *)
-	| Basic(id, _), Basic(id', _) -> raise (Fail("failed at extract("^id^", "^id'^")"))
+	| Basic(id, _), Basic(id', _) -> raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
 	| Seq(a1, a2), Basic(_, _) -> extrSeqAtom a1 a2 b cont
 	| Par(a1, a2), Basic(_, _) -> extrParAtom a1 a2 b cont
 
