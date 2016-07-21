@@ -91,8 +91,8 @@ ty2:
 
 ty3:
 | ty_basic { $1 }
-| ty3 ARROW ty_basic { FunTy($1, $3) }
-| SOME ARROW ty_basic { FunTy(SomeTy(ref None), $3) }
+| ty_basic ARROW ty3 { FunTy($1, $3) }
+| SOME ARROW ty3 { FunTy(SomeTy(ref None), $3) }
 
 ty_basic:
 | STOPT { SkipTy }

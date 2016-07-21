@@ -2,6 +2,11 @@ open Types;;
 open Assertions;;
 open Exp;;
 
+let level0 = 0;;
+let level1 = 1;;
+let level2 = 2;;
+let level3 = 3;;
+
 let rec print_type_lev t l = 
 	match t with
 	| SkipTy -> print_string "0"
@@ -11,30 +16,32 @@ let rec print_type_lev t l =
 		(
 			match !pointer with
 			| None -> print_string "some"
-			| Some(t) -> print_type_lev t 2
+			| Some(t) -> print_type_lev t level2
 		)
 	| FunTy(a, b) -> 
-		print_string "(";
-		print_type_lev a 0;
+		if l>=level2 then
+			print_string "(";
+		print_type_lev a level2;
 		print_string "->";
-		print_type_lev b 0;
-		print_string ")";
+		print_type_lev b level2;
+		if l>=level2 then
+			print_string ")";
 	| BasicTy(id) -> print_string (Hashtbl.find Lexer.tableIntStr id)
 	| SeqTy(a, b) -> 
-		if l>1 then
+		if l>level1 then
 			print_string "(";
-		print_type_lev a 1;
+		print_type_lev a level1;
 		print_string ";";
-		print_type_lev b 1;
-		if l>1 then
+		print_type_lev b level1;
+		if l>level1 then
 			print_string ")"
 	| ParTy(a,b) -> 
-		if l>0 then 
+		if l>level0 then 
 			print_string "(";
-		print_type_lev a 0;
+		print_type_lev a level0;
 		print_string "|";
-		print_type_lev b 0;
-		if l>0 then
+		print_type_lev b level0;
+		if l>level0 then
 			print_string ")"
 ;;
 
@@ -50,16 +57,16 @@ let rec print_assertion_lev t l =
 		print_string ":";
 		print_type t;
 	| Seq(a, b) -> 
-		print_assertion_lev a 1;
+		print_assertion_lev a level1;
 		print_string ";";
-		print_assertion_lev b 1;
+		print_assertion_lev b level1;
 	| Par(a,b) -> 
-		if (l>0) then 
+		if (l>level0) then 
 			print_string "(";
-		print_assertion_lev a 0;
+		print_assertion_lev a level0;
 		print_string "|";
-		print_assertion_lev b 0;
-		if (l>0) then
+		print_assertion_lev b level0;
+		if (l>level0) then
 			print_string ")"
 ;;
 
