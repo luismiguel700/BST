@@ -76,12 +76,12 @@ let extr_comm (a:ty)(b:ty):unit =
 					print_extr a b a' b' h
 				)
 			with
-			| Extract.Fail(s) -> print_string (s^"\n") (*print_string (s^"\n")*)
+			| Extract.Fail(s) -> () (*print_string (s^"\n")*)
 		done;
 
 		if not !solution then
 		(
-			print_string "Failed to \n"; 
+			print_string "Failed to "; 
 			print_extract a b
 		)
 	)

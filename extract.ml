@@ -102,22 +102,21 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
-	if inFst b a2 then
-		Stack.push 
-		(
-			fun () ->
-				extr a2 b 
-				(
-					fun (a2', b', h2) ->
-						if consistsOfVars b' h2 then
-							cont (ParTy(a1,a2'), b', h2)
-						else if b'=b then
-							raise (Fail("error in extrParAtom"))
-						else
-							raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
-				)
-		)
-		!s
+	Stack.push 
+	(
+		fun () ->
+			extr a2 b 
+			(
+				fun (a2', b', h2) ->
+					if consistsOfVars b' h2 then
+						cont (ParTy(a1,a2'), b', h2)
+					else if b'=b then
+						raise (Fail("error in extrParAtom"))
+					else
+						raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+			)
+	)
+	!s
 	;
 
 	extr a1 b 
