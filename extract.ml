@@ -24,7 +24,7 @@ let rec substHolesVars a h =
 	| (id,_)::tail -> substHolesVars (subst a (HoleTy(id)) (VarTy(id))) tail
 
 let rec extr(a:ty)(b:ty)(stacksOfRefs:((some ref) Stack.t) list)(cont:ty*ty*map -> unit):unit = 
-	print_type a; print_string ", "; print_type b; print_string "\n";
+(*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
 	match a, b with
 	| SomeTy(_), _ -> raise (Fail("not defined"))
 
@@ -136,7 +136,7 @@ and extrParAtom a1 a2 b stacksOfRefs cont =
 				if consistsOfVars b' h1 then
 					cont (ParTy(a1', a2), b', h1)
 				else if b'=b then
-					extr a2 b stacksOfRefs
+					extr a2 b (stackRefs::stacksOfRefs)
 					(
 						fun (a2', b', h2) ->
 							if consistsOfVars b' h2 then
@@ -183,6 +183,7 @@ let rec hasNext () = not (Stack.is_empty s)
 let rec next () = 
 	let (stackRefs, cont) = Stack.pop s in
 	(
+(*		print_string "number: "; print_int (Stack.length stackRefs); print_string "\n"; *)
 		while not (Stack.is_empty stackRefs) do
 			(Stack.pop stackRefs) := None
 		done;
