@@ -13,7 +13,7 @@ let rec substHolesVars a h =
 	| [] -> a
 	| (id,_)::tail -> substHolesVars (subst a (Hole(id)) (Var(id))) tail
 
-let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):unit = 
+let rec extr(a:assertion)(b:assertion)(stackOfRefs: )(cont:(assertion*assertion*map)->unit):unit = 
 (*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
 	match a, b with
 	| _, Skip -> cont (a, b, [])
@@ -35,7 +35,7 @@ let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):uni
 	| _, Par(b1,b2) -> extrPar a b1 b2 cont
 
 and extrBasicBasic id t1 t2 cont =
-	Extract.extr t1 t2 
+	Extract.extr t1 t2 stacksOfRefs
 	(
 		fun (t1', t2', h) ->
 			if Types.consistsOfVars t1' h && Types.consistsOfVars t2' h then
