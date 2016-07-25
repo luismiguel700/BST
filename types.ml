@@ -44,7 +44,7 @@ let rec inFst t a =
 	| ParTy(a1,a2) -> inFst t a1 || inFst t a2 
 ;;
 
-(* A=A'[x] ? *) (* optmimizar mais tarde *)
+(* A=A'[~x] ? *) (* optmimizar mais tarde *)
 let rec containsVars a xs =
 	match a with
 	| SkipTy -> false

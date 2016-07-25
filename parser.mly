@@ -34,6 +34,8 @@ open Comm
 %token RPAR
 %token LPAR2
 %token RPAR2
+%token LPAR3
+%token RPAR3
 %token ARROW
 %token EQ
 
@@ -124,12 +126,12 @@ assertion_basic:
 
 exp:
 | exp2 { $1 }
-| FUN LPAR ID COLON ty RPAR ARROW exp { Fun($3, $5, $8) }
-| LET ID EQ exp IN exp { Let($2, $4, $6) }
+| FUN LPAR ID COLON ty RPAR ARROW ty LPAR3 exp RPAR3 { Fun($3, $5, $8, $10) }
+| LET ID COLON ty EQ exp IN exp { Let($2, $4, $6, $8) }
 
 exp2:
 | exp_basic { $1 }
-| exp2 exp_basic { Call($1, $2) }
+| exp_basic exp2 { Call($1, $2) }
 
 exp_basic:
 | ID { Id($1) }

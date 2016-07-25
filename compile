@@ -1,5 +1,7 @@
 ocamllex  lexer.mll
 ocamlyacc  parser.mly
+ocamlc -c -dtypes exceptions.mli
+ocamlc -c -dtypes exceptions.ml
 ocamlc -c -dtypes types.mli
 ocamlc -c -dtypes types.ml
 ocamlc -c -dtypes assertions.mli
@@ -19,5 +21,7 @@ ocamlc -c -dtypes extract_a.mli
 ocamlc -c -dtypes extract_a.ml
 ocamlc -c -dtypes join.mli
 ocamlc -c -dtypes join.ml
+ocamlc -c -dtypes typecheck.mli
+ocamlc -c -dtypes typecheck.ml
 ocamlc -c -dtypes main.ml
-ocamlc -o main types.cmo assertions.cmo exp.cmo comm.cmo parser.cmo lexer.cmo unparser.cmo extract.cmo extract_a.cmo join.cmo main.cmo
+ocamlc -o main exceptions.cmo types.cmo assertions.cmo exp.cmo comm.cmo parser.cmo lexer.cmo unparser.cmo extract.cmo extract_a.cmo join.cmo typecheck.cmo main.cmo

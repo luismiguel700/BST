@@ -1,17 +1,7 @@
+open Exceptions;;
 open Assertions;;
 
 type map = (int * assertion) list (* optimizar mais tarde com hashmaps *)
-type res_extr_a = assertion*assertion*map;;
-
-exception Fail of string;;
-
-let s:((unit -> assertion*assertion*map) Stack.t) ref = ref (Stack.create ());;
-
-let idCount = ref 0;;
-
-let resetCount () = idCount := 0
-
-let freshId () = (idCount := (!idCount+1)); !idCount
 
 let rec substVarsHoles a h =
 	match h with
@@ -23,7 +13,7 @@ let rec substHolesVars a h =
 	| [] -> a
 	| (id,_)::tail -> substHolesVars (subst a (Hole(id)) (Var(id))) tail
 
-let rec extr(a:assertion)(b:assertion)(cont: res_extr_a->res_extr_a):res_extr_a = 
+let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):unit = 
 (*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
 	match a, b with
 	| _, Skip -> cont (a, b, [])
@@ -35,7 +25,7 @@ let rec extr(a:assertion)(b:assertion)(cont: res_extr_a->res_extr_a):res_extr_a 
 	| Skip, Basic(_, _) -> cont (a, b, [])
 	| Hole(_), Basic(_, _) -> cont (a, b, [])
 	| Var(id), Basic(id', _) -> raise (Fail("failed at extract("^(string_of_int id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
-	| Basic(id, t), Basic(id', t') when id=id' && t=t' -> extrAtomAtom a cont (* rever *)
+	| Basic(id, t), Basic(id', t') when id=id' -> extrBasicBasic id t t' cont (* rever *)
 	| Basic(id, _), Basic(id', _) -> raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
 	| Seq(a1, a2), Basic(_, _) -> extrSeqAtom a1 a2 b cont
 	| Par(a1, a2), Basic(_, _) -> extrParAtom a1 a2 b cont
@@ -44,9 +34,16 @@ let rec extr(a:assertion)(b:assertion)(cont: res_extr_a->res_extr_a):res_extr_a 
 	
 	| _, Par(b1,b2) -> extrPar a b1 b2 cont
 
-and extrAtomAtom a cont =
-	let newId = freshId () in 
-		cont (Var(newId), Var(newId), [(newId, a)])
+and extrBasicBasic id t1 t2 cont =
+	Extract.extr t1 t2 
+	(
+		fun (t1', t2', h) ->
+			if Types.consistsOfVars t1' h && Types.consistsOfVars t2' h then
+				let newId = Extract.freshId () in
+					cont (Var(newId), Var(newId), [(newId, Basic(id, t1))])
+			else
+				raise (Fail("failed at extracting id "^(Hashtbl.find Lexer.tableIntStr id)))
+	)	
 
 and extrSeqAtom a1 a2 b cont =
 	extr a1 b 
@@ -59,21 +56,19 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
-	if inFst b a2 then
-		Stack.push 
-		(
-			fun () ->
-				extr a2 b 
-				(
-					fun (a2', b', h2) ->
-						match b' with
-						| Var(_) -> cont (Par(a1,a2'), b', h2)
-						| _ when b'=b -> raise (Fail("error in extrParAtom"))
-						| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
-				)
-		)
-		!s
-	;
+	Stack.push 
+	(
+		fun () ->
+			extr a2 b 
+			(
+				fun (a2', b', h2) ->
+					match b' with
+					| Var(_) -> cont (Par(a1,a2'), b', h2)
+					| _ when b'=b -> raise (Fail("error in extrParAtom"))
+					| _ -> raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
+			)
+	)
+	Extract.s;
 
 	extr a1 b 
 	(
@@ -96,7 +91,7 @@ and extrSeq a b1 b2 cont =
 	extr a b1 
 	(
 		fun (a', b1', h1) -> 
-			if consistsOfVars b1' then
+			if consistsOfVars b1' h1 then
 				let ah' = substVarsHoles a' h1 in
 					extr ah' b2 
 					(
@@ -116,11 +111,10 @@ and extrPar a b1 b2 cont =
 	)
 ;;
 
-let rec init(a:assertion)(b:assertion):unit = 
-	resetCount ();
-	s := Stack.create (); 
-	Stack.push ( fun () -> extr a b (fun (a', b', h) -> (a',b', h)) ) !s
+let rec init(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):unit = 
+	Extract.resetCount ();
+	Stack.push ( fun () -> extr a b cont ) Extract.s
 
-let rec hasNext () = not (Stack.is_empty !s)
+let rec hasNext () = not (Stack.is_empty Extract.s)
 
-let rec next () = (Stack.pop !s) ()
+let rec next () = (Stack.pop Extract.s) ()

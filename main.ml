@@ -1,9 +1,11 @@
+open Exceptions;;
 open Types;;
 open Assertions;;
 open Exp;;
 open Extract;;
 open Extract_a;;
 open Join;;
+open Typecheck;;
 open Comm;;
 open List;;
 open Unparser;;
@@ -65,18 +67,16 @@ let print_extr_a (a:assertion)(b:assertion)(a':assertion)(b':assertion)(h:Extrac
 	print_string "] )\n"
 
 let extr_comm (a:ty)(b:ty):unit = 
-	Extract.init a b;
+	Extract.init a b (fun (a', b', h) -> print_extr a b a' b' h);
+
 	let solution = ref false in
 	(
 		while Extract.hasNext () do
 			try
-				let (a', b', h) = Extract.next () in
-				(	
-					solution := true;
-					print_extr a b a' b' h
-				)
+				Extract.next ();
+				solution := true
 			with
-			| Extract.Fail(s) -> () (*print_string (s^"\n")*)
+			| Fail(s) -> () (*print_string (s^"\n")*)
 		done;
 
 		if not !solution then
@@ -87,15 +87,15 @@ let extr_comm (a:ty)(b:ty):unit =
 	)
 
 let extr_is_ok (a:ty)(b:ty):bool = 
-	Extract.init a b;
+	Extract.init a b (fun (a', b', h) -> ());
 	let ok = ref false in
 	(
 		while Extract.hasNext () && (not !ok) do
 			try
-				let _ = Extract.next () in
-					ok := true
+				Extract.next ();
+				ok := true;
 			with
-			| Extract.Fail(s) -> () (*print_string (s^"\n")*)
+			| Fail(s) -> () (*print_string (s^"\n")*)
 		done;
 		!ok
 	)
@@ -121,13 +121,12 @@ let ko_extr_comm (a:ty)(b:ty):unit =
 			print_extract a b
 
 let extr_a_comm (a:assertion)(b:assertion):unit =
-	Extract_a.init a b;
+	Extract_a.init a b (fun (a', b', h) -> print_extr_a a b a' b' h);
 	while Extract_a.hasNext () do
 		try
-			let (a', b', h) = Extract_a.next () in
-				print_extr_a a b a' b' h
+			Extract_a.next ()
 		with
-		| Extract_a.Fail(s) -> () (*print_string (s^"\n")*)
+		| Fail(s) -> () (*print_string (s^"\n")*)
 	done
 
 let print_join xs a h y a' y' b =
@@ -173,14 +172,26 @@ let ok_join_comm xs a h y c =
 				print_string "\n"
 			)
 
-let typecheck_comm a e t =
+let print_typecheck a e t a' =
 	print_string "type(";
 	print_assertion a;
 	print_string ", ";
 	print_exp e;
 	print_string ", ";
 	print_type t;
-	print_string ")\n"
+	print_string ") = ";
+	print_assertion a';
+	print_string "\n"	
+
+let typecheck_comm a e t =
+	Typecheck.init a e t (fun a' -> print_typecheck a e t a');
+
+	while Typecheck.hasNext () do
+		try
+			Typecheck.next ()
+		with
+		| Fail(s) -> print_string (s^"\n") (*print_string (s^"\n")*)
+	done
 
 let rec top_level lexbuf =
 	print_string "> " ;

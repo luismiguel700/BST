@@ -1,11 +1,10 @@
+open Exceptions;;
 open Types;;
 open Unparser;;
 
 type map = (int * ty) list (* optimizar mais tarde com hashmaps *)
 
-exception Fail of string;;
-
-let s:((unit -> ty*ty*map) Stack.t) ref = ref (Stack.create ());;
+let s:(unit -> unit) Stack.t = Stack.create ();;
 
 let idCount = ref 0;;
 
@@ -23,8 +22,8 @@ let rec substHolesVars a h =
 	| [] -> a
 	| (id,_)::tail -> substHolesVars (subst a (HoleTy(id)) (VarTy(id))) tail
 
-let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map = 
-(*	print_type a; print_string ", "; print_type b; print_string "\n"; *) 
+let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> unit):unit = 
+(*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
 	match a, b with
 	| SomeTy(_), _ -> raise (Fail("not defined"))
 
@@ -46,7 +45,7 @@ let rec extr(a:ty)(b:ty)(cont:ty*ty*map -> ty*ty*map):ty*ty*map =
 
 	| SkipTy, BasicTy(_) -> cont (a, b, [])
 	| HoleTy(_), BasicTy(_) -> cont (a, b, [])
-	| VarTy(id), BasicTy(id') -> raise (Fail("failed at extract("^(string_of_int id)^", "^(Hashtbl.find Lexer.tableIntStr id)^")"))
+	| VarTy(id), BasicTy(id') -> raise (Fail("failed at extract("^(string_of_int id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
 	| FunTy(_,_), BasicTy(id) -> raise (Fail("failed at extract(fun, "^(Hashtbl.find Lexer.tableIntStr id)^")"))
 	| BasicTy(id), BasicTy(id') when id=id' -> extrAtomAtom a cont
 	| BasicTy(id), BasicTy(id') -> raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
@@ -65,12 +64,9 @@ and extrFunFun arg1 ret1 arg2 ret2 cont =
 				match arg2 with
 				| SomeTy(pointer) -> 
 					(	
-						try
-							pointer := Some(arg1);
-							let newId = freshId () in 
-								cont (FunTy(VarTy(newId), ret1'), FunTy(VarTy(newId), ret2'), (newId, arg1)::h1)
-						with
-						| Fail(s) -> pointer := None; raise (Fail(s))
+						pointer := Some(arg1);
+						let newId = freshId () in 
+							cont (FunTy(VarTy(newId), ret1'), FunTy(VarTy(newId), ret2'), (newId, arg1)::h1)
 					)
 				| _ -> 
 					extr arg2 arg1 
@@ -102,6 +98,7 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
+	(* caso b seja uma funcao, nao e suficiente usar o inFst para verificar se deve-se fazer o seguinte push *)
 	Stack.push 
 	(
 		fun () ->
@@ -116,7 +113,7 @@ and extrParAtom a1 a2 b cont =
 						raise (Fail("the residue should be equal to 0 or to the atom being extracted"))
 			)
 	)
-	!s
+	s
 	;
 
 	extr a1 b 
@@ -163,11 +160,10 @@ and extrPar a b1 b2 cont =
 	)
 ;;
 
-let rec init(a:ty)(b:ty):unit = 
+let rec init(a:ty)(b:ty)(cont:(ty*ty*map)->unit):unit = 
 	resetCount ();
-	s := Stack.create (); 
-	Stack.push ( fun () -> extr a b (fun (a', b', h) -> (a',b', h)) ) !s
+	Stack.push (fun () -> extr a b cont) s
 
-let rec hasNext () = not (Stack.is_empty !s)
+let rec hasNext () = not (Stack.is_empty s)
 
-let rec next () = (Stack.pop !s) ()
+let rec next () = (Stack.pop s) ()

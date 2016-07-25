@@ -75,25 +75,45 @@ let print_assertion t = print_assertion_lev t 0;;
 let rec print_exp_lev e l = 
 	match e with
 	| Id(id) -> print_string (Hashtbl.find Lexer.tableIntStr id)
-	| Fun(id, t, e1) -> 
-		print_string "fun ";
+	| Fun(id, tArg, tRet, e1) -> 
+		if l>level0 then
+			print_string "(";
+		print_string "fun (";
 		print_string (Hashtbl.find Lexer.tableIntStr id);
-		print_string " -> ";
-		print_exp_lev e1 0
-	| Let(id, e1, e2) ->
+		print_string (":");
+		print_type tArg;
+		print_string ") -> ";
+		print_type tRet;
+		print_string " { ";
+		print_exp_lev e1 level0;
+		print_string " }";
+		if l>level0 then
+			print_string ")";
+	| Let(id, t, e1, e2) ->
+		if l>level0 then
+			print_string "(";
 		print_string "let ";
 		print_string (Hashtbl.find Lexer.tableIntStr id);
+		print_string (":");
+		print_type t;
 		print_string " = ";
-		print_exp_lev e1 0;
+		print_exp_lev e1 level0;
 		print_string " in ";
-		print_exp_lev e2 0
+		print_exp_lev e2 level0;
+		if l>level0 then
+			print_string ")";
 	| Call(e1, e2) ->
-		print_exp_lev e1 0;
+		if l>=level1 then
+			print_string "(";
+		print_exp_lev e1 level1;
 		print_string " ";
-		print_exp_lev e2 0
+		print_exp_lev e2 level1;
+		if l>=level1 then
+			print_string ")"
 	| Select(e1, id) ->
-		print_exp_lev e1 0;
+		print_exp_lev e1 level2;
 		print_string ("."^(Hashtbl.find Lexer.tableIntStr id));
+
 ;;
 
 let print_exp e = print_exp_lev e 0;;

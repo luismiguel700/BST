@@ -35,7 +35,7 @@ let rec inFst t a =
 	| Par(a1,a2) -> inFst t a1 || inFst t a2 
 ;;
 
-(* A=A'[x] ? *) (* optmimizar mais tarde *)
+(* A=A'[~x] ? *) (* optmimizar mais tarde *)
 let rec containsVars a xs =
 	match a with
 	| Skip -> false
@@ -45,14 +45,14 @@ let rec containsVars a xs =
 	| Seq(a1,a2) -> containsVars a1 xs || containsVars a2 xs
 	| Par(a1,a2) -> containsVars a1 xs || containsVars a2 xs
 
-let rec consistsOfVars a =
+let rec consistsOfVars a vars =
 	match a with
-	| Skip -> false
+	| Skip -> true
 	| Hole(_) -> false
-	| Var(_) -> true
+	| Var(id) -> exists (fun (id', _) -> id=id') vars
 	| Basic(_, _) -> false
-	| Seq(a1,a2) -> consistsOfVars a1 && consistsOfVars a2
-	| Par(a1,a2) -> consistsOfVars a1 && consistsOfVars a2
+	| Seq(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
+	| Par(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
 
 (* A{C/b} *)
 let rec subst a b c =

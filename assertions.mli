@@ -14,6 +14,6 @@ val isSkip: assertion -> bool;;
 
 val inFst: assertion -> assertion -> bool;;
 
-val consistsOfVars: assertion -> bool;;
+val consistsOfVars: assertion -> (int*'a) list -> bool;;
 
 val subst: assertion -> assertion -> assertion -> assertion;;
