@@ -7,58 +7,93 @@ open Extract_a;;
 open Join;;
 open List;;
 
+(* deletes id:B from A *)
+(* it throws an exception if: not B<:>0 *)
+let rec deleteId a id =
+	match a with
+	| Skip -> a
+	| Hole(_) -> a
+	| Var(_) -> a
+	| Basic(id', t) when id=id' -> 
+		if Types.isSkip t then
+			Skip
+		else
+			raise (Fail("cannot delete id"^(Hashtbl.find Lexer.tableIntStr id)^" because it is not equivalent to stop"))
+	| Basic(_, _) -> a
+	| Seq(a1,a2) -> Seq(deleteId a1 id, deleteId a2 id)
+	| Par(a1,a2) -> Par(deleteId a1 id, deleteId a2 id)
+
 let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit =
 	match e, t with
-	| Id(id), _ -> 
-		Extract_a.extr a (Basic(id, t)) []
-		(
-			fun (a', b', h) -> 
-				if consistsOfVars b' h then
-					cont (a', h)
-				else
-					raise (Fail("typechecking of the identifier"^(Hashtbl.find Lexer.tableIntStr id)^": not empty residue"))
-		)
+	| Id(id), _ -> typecheckId a id t cont
 	| Select(e1, id), SkipTy -> typecheck a e1 (BasicTy(id)) cont
-	| Select(_, _), _ -> raise (Fail("cannot extract a select expression with a type different than stop"))
-	| Fun(x, tArg, tRet, e1), FunTy(argTy, retTy) ->
-		let y = Lexer.freshId x in
-			let e1' = Exp.substId e1 x y in
-				typecheck (Par(a, Basic(y, tArg))) e1' tRet cont
+	| Select(_, _), _ -> raise (Fail("cannot extract a select expression with a type different from stop"))
+	| Fun(id, tArg, tRet, e1), FunTy(tArg2, tRet2) -> typecheckFun a id tArg tRet e1 tArg2 tRet2 cont
 	| Fun(_, _, _, _), _ -> raise (Fail("not a function type"))
-	| Call(e1, e2), _ ->
-		let refArgType = ref None in
-			typecheck a e1 (FunTy(SomeTy(refArgType), t))
-			(
-				fun (a', h1) ->
-					match !refArgType with
-					| None -> raise (Fail("matching of argument failed"))
-					| Some(tArg) -> 
-						typecheck a' e2 tArg
-						(
-							fun (a'', h2) -> 
-								let newId:int = freshId () in
-									let (b, (_, _)) = join_a (map (fun (id, _) -> id) (h1@h2)) a'' (h1@h2) newId in
-										cont (b, [(newId, Skip)]) (* corrigir *)
-						)
-			)
-	| Let(id, tE1, e1, e2), _ ->
-		typecheck a e1 tE1
+	| Call(e1, e2), _ -> typecheckCall a e1 e2 t cont
+	| Let(id, tE1, e1, e2), _ -> typecheckLet a id tE1 e1 e2 t cont
+
+and typecheckId a id t cont =
+	Extract_a.extr a (Basic(id, t))
+	(
+		fun (a', b', h) -> 
+			if consistsOfVars b' h then
+				cont (a', h)
+			else
+				raise (Fail("typechecking of the identifier"^(Hashtbl.find Lexer.tableIntStr id)^": not empty residue"))
+	)
+
+and typecheckFun a id tArg tRet e1 tArg2 tRet2 cont =
+	Extract.extr (FunTy(tArg, tRet)) (FunTy(tArg2, tRet2))
+	(
+		fun (_, _, _) ->
+			let id' = Lexer.freshId id in
+				let e1' = Exp.substId e1 id id' in
+					typecheck (Par(a, Basic(id', tArg))) e1' tRet
+					(
+						fun (a', h) -> cont (deleteId a' id', h)
+					)
+	)
+
+and typecheckCall a e1 e2 t cont = 
+	let refArgType = ref None in
+		typecheck a e1 (FunTy(SomeTy(refArgType), t))
 		(
 			fun (a', h1) ->
-				 let newId = freshId () in
-					let (b, (_, _)) = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
-						typecheck (subst b (Var(newId)) (Basic(id, tE1))) e2 t cont
+				match !refArgType with
+				| None -> raise (Fail("matching of argument failed"))
+				| Some(tArg) -> 
+					typecheck a' e2 tArg
+					(
+						fun (a'', h2) -> 
+							let newId = freshId () in
+								let (b, (_, _)) = join_a (map (fun (id, _) -> id) (h1@h2)) a'' (h1@h2) newId in
+									cont (b, [(newId, Skip)]) (* corrigir *)
+					)
 		)
-
+			
+and typecheckLet a id tE1 e1 e2 t cont =
+	typecheck a e1 tE1
+	(
+		fun (a', h1) -> 
+			let newId = freshId () in
+				let (b, (_, _)) = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
+					let id' = Lexer.freshId id in
+					let e2' = Exp.substId e2 id id' in 
+						typecheck (subst b (Var(newId)) (Basic(id', tE1))) e2' t
+						(
+							fun (a'', h2) -> cont (deleteId a'' id', h2)
+						)
+	)
 
 let rec init(a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit = 
 	Extract.resetCount ();
-	Stack.push ( Stack.create(), fun () -> typecheck a e t cont ) Extract.s
+	Stack.push ( Stack.create(), fun () -> typecheck a e t cont ) Extract.stack
 
-let rec hasNext () = not (Stack.is_empty Extract.s)
+let rec hasNext () = not (Stack.is_empty Extract.stack)
 
 let rec next () = 
-	let (stackRefs, cont) = Stack.pop Extract.s in
+	let (stackRefs, cont) = Stack.pop Extract.stack in
 	(
 		while not (Stack.is_empty stackRefs) do
 			(Stack.pop stackRefs) := None

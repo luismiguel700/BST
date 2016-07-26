@@ -1,8 +1,10 @@
 type
-g:i->i;z:d | y:i;w:d | x:0
+f:i->i;z:d | y:i;w:d | x:0
 (
-let f:0->i = fun (x:0) -> i {g y} in
-	f
+let 
+	f:0->i = fun (x:0) -> i {f y} 
+in
+	f x
 )
-i->i
+i
 ;;

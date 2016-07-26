@@ -1,5 +1,6 @@
 open List;;
 open Types;;
+open Exceptions;;
 
 type assertion =
 | Skip
