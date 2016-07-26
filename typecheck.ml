@@ -3,15 +3,18 @@ open Types;;
 open Assertions;;
 open Exp;;
 open Extract;;
+open Extract_a;;
+open Join;;
+open List;;
 
-let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:assertion->unit):unit =
+let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit =
 	match e, t with
 	| Id(id), _ -> 
 		Extract_a.extr a (Basic(id, t)) []
 		(
 			fun (a', b', h) -> 
 				if consistsOfVars b' h then
-					cont a'
+					cont (a', h)
 				else
 					raise (Fail("typechecking of the identifier"^(Hashtbl.find Lexer.tableIntStr id)^": not empty residue"))
 		)
@@ -26,19 +29,29 @@ let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:assertion->unit):unit =
 		let refArgType = ref None in
 			typecheck a e1 (FunTy(SomeTy(refArgType), t))
 			(
-				fun a' ->
+				fun (a', h1) ->
 					match !refArgType with
 					| None -> raise (Fail("matching of argument failed"))
-					| Some(t') -> typecheck a' e2 t' (fun a'' -> cont ())
+					| Some(tArg) -> 
+						typecheck a' e2 tArg
+						(
+							fun (a'', h2) -> 
+								let newId:int = freshId () in
+									let (b, (_, _)) = join_a (map (fun (id, _) -> id) (h1@h2)) a'' (h1@h2) newId in
+										cont (b, [(newId, Skip)]) (* corrigir *)
+						)
 			)
-(*	| Let(id, t, e1, e2) ->
-		typecheck a e1 t
+	| Let(id, tE1, e1, e2), _ ->
+		typecheck a e1 tE1
 		(
-			fun a' -> 
+			fun (a', h1) ->
+				 let newId = freshId () in
+					let (b, (_, _)) = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
+						typecheck (subst b (Var(newId)) (Basic(id, tE1))) e2 t cont
 		)
-*)
 
-let rec init(a:assertion)(e:exp)(t:ty)(cont:assertion->unit):unit = 
+
+let rec init(a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit = 
 	Extract.resetCount ();
 	Stack.push ( Stack.create(), fun () -> typecheck a e t cont ) Extract.s
 

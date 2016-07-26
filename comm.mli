@@ -1,7 +1,8 @@
 open Types;;
 open Assertions;;
 open Exp;;
-open Join;;
+
+type map = (int * ty) list;;
 
 type comm =
 | Quit

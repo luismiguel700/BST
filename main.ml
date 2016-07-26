@@ -184,7 +184,7 @@ let print_typecheck a e t a' =
 	print_string "\n"	
 
 let typecheck_comm a e t =
-	Typecheck.init a e t (fun a' -> print_typecheck a e t a');
+	Typecheck.init a e t (fun (a', _) -> print_typecheck a e t a');
 
 	while Typecheck.hasNext () do
 		try
