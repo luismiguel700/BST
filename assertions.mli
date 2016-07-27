@@ -11,6 +11,10 @@ type assertion =
 | Par of assertion * assertion
 ;;
 
+val makeAssertion: int -> ty -> assertion;;
+
+val makeCanonical: assertion -> assertion;;
+
 val isSkip: assertion -> bool;;
 
 val inFst: assertion -> assertion -> bool;;

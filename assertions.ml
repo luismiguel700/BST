@@ -11,6 +11,26 @@ type assertion =
 | Par of assertion * assertion
 ;;
 
+let rec makeAssertion id t =
+	match t with
+	| SkipTy -> Skip
+	| HoleTy(id) -> raise (Fail("makeAssertion cannot be applied to holes"))
+	| VarTy(id) -> raise (Fail("makeAssertion cannot be applied to var"))
+	| SomeTy(_) -> raise (Fail("makeAssertion cannot be applied to SomeType"))
+	| FunTy(_, _) -> Basic(id, t)
+	| BasicTy(id') -> Basic(id, BasicTy(id'))
+	| SeqTy(a1, a2) -> Seq(makeAssertion id a1, makeAssertion id a2)
+	| ParTy(a1, a2) -> Par(makeAssertion id a1, makeAssertion id a2)
+
+let rec makeCanonical a =
+	match a with
+	| Skip -> a
+	| Hole(_) -> a
+	| Var(_) -> a
+	| Basic(id, t) -> makeAssertion id t
+	| Seq(a1, a2) -> Seq(makeCanonical a1, makeCanonical a2)
+	| Par(a1, a2) -> Par(makeCanonical a1, makeCanonical a2)
+
 (* A<:>0 ? *)
 let rec isSkip a =
 	match a with

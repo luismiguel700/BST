@@ -8,3 +8,16 @@ in
 )
 i
 ;;
+
+
+type
+f:i->i;z:d | y:i;w:d | x:0
+(
+let 
+	f:0->i = fun (x:0) -> i {f y} 
+in
+	f x
+)
+i
+;;
+

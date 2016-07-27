@@ -7,8 +7,8 @@ open Extract_a;;
 open Join;;
 open List;;
 
-(* deletes id:B from A *)
-(* it throws an exception if: not B<:>0 *)
+(* deletes all occurrences of id:T from A *)
+(* it throws an exception if: not T<:>0 *)
 let rec deleteId a id =
 	match a with
 	| Skip -> a
@@ -18,7 +18,7 @@ let rec deleteId a id =
 		if Types.isSkip t then
 			Skip
 		else
-			raise (Fail("cannot delete id"^(Hashtbl.find Lexer.tableIntStr id)^" because it is not equivalent to stop"))
+			raise (Fail("cannot delete id"^(Hashtbl.find Lexer.tableIntStr id)^" because its type is not equivalent to stop"))
 	| Basic(_, _) -> a
 	| Seq(a1,a2) -> Seq(deleteId a1 id, deleteId a2 id)
 	| Par(a1,a2) -> Par(deleteId a1 id, deleteId a2 id)
@@ -34,7 +34,7 @@ let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->uni
 	| Let(id, tE1, e1, e2), _ -> typecheckLet a id tE1 e1 e2 t cont
 
 and typecheckId a id t cont =
-	Extract_a.extr a (Basic(id, t))
+	Extract_a.extr a (makeAssertion id t)
 	(
 		fun (a', b', h) -> 
 			if consistsOfVars b' h then
@@ -88,7 +88,8 @@ and typecheckLet a id tE1 e1 e2 t cont =
 
 let rec init(a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit = 
 	Extract.resetCount ();
-	Stack.push ( Stack.create(), fun () -> typecheck a e t cont ) Extract.stack
+	let a' = makeCanonical a in
+		Stack.push ( Stack.create(), fun () -> typecheck a' e t cont ) Extract.stack
 
 let rec hasNext () = not (Stack.is_empty Extract.stack)
 

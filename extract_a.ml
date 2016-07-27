@@ -117,7 +117,9 @@ and extrPar a b1 b2 cont =
 
 let rec init(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):unit = 
 	Extract.resetCount ();
-	Stack.push ( Stack.create (), fun () -> extr a b cont ) Extract.stack
+	let a' = makeCanonical a in
+	let b' = makeCanonical b in
+		Stack.push ( Stack.create (), fun () -> extr a' b' cont ) Extract.stack
 
 let rec hasNext () = not (Stack.is_empty Extract.stack)
 
