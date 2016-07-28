@@ -19,7 +19,7 @@ some =
 let rec isSkip a =
 	match a with
 	| SkipTy -> true
-	| HoleTy(_) -> true
+	| HoleTy(_) -> false
 	| VarTy(_) -> false
 	| SomeTy(_) -> false
 	| FunTy(_) -> false

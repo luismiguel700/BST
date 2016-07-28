@@ -21,6 +21,6 @@ val inFst: ty -> ty -> bool;;
 
 val containsVars: ty -> int list -> bool;;
 
-val consistsOfVars: ty -> (int*ty) list -> bool;;
+val consistsOfVars: ty -> (int*'a) list -> bool;;
 
 val subst: ty -> ty -> ty -> ty;;

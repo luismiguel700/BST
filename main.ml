@@ -190,7 +190,7 @@ let typecheck_comm a e t =
 		try
 			Typecheck.next ()
 		with
-		| Fail(s) -> () (*print_string (s^"\n")*)
+		| Fail(s) -> () (* print_string (s^"\n") *)
 	done
 
 let rec top_level lexbuf =

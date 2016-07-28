@@ -61,10 +61,8 @@ and extrFunFunWithSome arg1 ret1' arg2Ptr ret2' hRet cont =
 	match !arg2Ptr with
 	| None ->
 		arg2Ptr := Some(arg1);
-		
 		if not (Stack.is_empty stack) then
 			Stack.push arg2Ptr (fst (Stack.top stack));
-		
 		let newId = freshId () in 
 			cont (FunTy(VarTy(newId), ret1'), FunTy(VarTy(newId), ret2'), (newId, arg1)::hRet)
 	| Some(t) -> 
@@ -108,7 +106,11 @@ and extrSeqAtom a1 a2 b cont =
 			if consistsOfVars b' h1 then (* this auxiliary function is necessary because functions are atoms *)
 				cont (SeqTy(a1', a2), b', h1)
 			else if b'=b then
-				extr a2 b (fun (a2', b', h2) -> cont (SeqTy(a1',a2'), b', h2))
+				extr a2 b 
+				(
+					fun (a2', b', h2) -> 
+						cont ((if isSkip a1' then a2' else SeqTy(a1',a2')), b', h2)
+				)
 			else
 				raise (Fail("the residue should only contain vars or be equal to the atom being extracted"))
 	)

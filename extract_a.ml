@@ -1,6 +1,7 @@
 open Exceptions;;
 open Types;;
 open Assertions;;
+open Unparser;;
 
 type map = (int * assertion) list (* optimizar mais tarde com hashmaps *)
 
@@ -15,7 +16,7 @@ let rec substHolesVars a h =
 	| (id,_)::tail -> substHolesVars (subst a (Hole(id)) (Var(id))) tail
 
 let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):unit = 
-(*	print_type a; print_string ", "; print_type b; print_string "\n"; *)
+(*	print_assertion a; print_string ", "; print_assertion b; print_string "\n"; *)
 	match a, b with
 	| _, Skip -> cont (a, b, [])
 	
@@ -27,7 +28,7 @@ let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):uni
 	| Hole(_), Basic(_, _) -> cont (a, b, [])
 	| Var(id), Basic(id', _) -> raise (Fail("failed at extract("^(string_of_int id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
 	| Basic(id, t), Basic(id', t') when id=id' -> extrBasicBasic id t t' cont (* rever *)
-	| Basic(id, _), Basic(id', _) -> raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
+	| Basic(id, t), Basic(id', t') -> if Types.isSkip t then cont (a, b, []) else raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
 	| Seq(a1, a2), Basic(_, _) -> extrSeqAtom a1 a2 b cont
 	| Par(a1, a2), Basic(_, _) -> extrParAtom a1 a2 b cont
 
@@ -52,7 +53,12 @@ and extrSeqAtom a1 a2 b cont =
 		fun (a1', b', h1) -> 
 			match b' with
 			| Var(_) -> cont (Seq(a1', a2), b', h1)
-			| _ when b'=b -> extr a2 b (fun (a2', b', h2) -> cont (Seq(a1',a2'), b', h2))
+			| _ when b'=b -> 
+					extr a2 b 
+					(
+						fun (a2', b', h2) -> 
+							cont ((if isSkip a1' then a2' else Seq(a1', a2')), b', h2)
+					)
 			| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
 	)
 

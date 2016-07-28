@@ -1,23 +1,26 @@
 type
-f:i->i;z:d | y:i;w:d | x:0
+fun1:(open->0);fun2:(close->0) | file:(open;close)
 (
-let 
-	f:0->i = fun (x:0) -> i {f y} 
-in
-	f x
+	let f:(open;close)->0 = 
+		fun (file:(open;close)) -> 0 
+		{
+			let temp:0 = fun1 file in fun2 file
+		}
+	in
+		f file
 )
-i
+0
 ;;
-
 
 type
-f:i->i;z:d | y:i;w:d | x:0
+openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
-let 
-	f:0->i = fun (x:0) -> i {f y} 
-in
-	f x
+	let 
+		openFile2:open->0 = fun (f:open) -> 0 {openFile f} 
+	in
+		let temp:0 = openFile2 file in 
+			let temp:0 = rdwrFile file in
+				file.close
 )
-i
+0
 ;;
-

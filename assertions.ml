@@ -35,7 +35,7 @@ let rec makeCanonical a =
 let rec isSkip a =
 	match a with
 	| Skip -> true
-	| Hole(_) -> true
+	| Hole(_) -> false
 	| Var(_) -> false
 	| Basic(_, t) -> Types.isSkip t
 	| Seq(a1,a2) -> isSkip a1 && isSkip a2
@@ -69,9 +69,9 @@ let rec containsVars a xs =
 let rec consistsOfVars a vars =
 	match a with
 	| Skip -> true
-	| Hole(_) -> false
+	| Hole(_) -> true
 	| Var(id) -> exists (fun (id', _) -> id=id') vars
-	| Basic(_, _) -> false
+	| Basic(_, t) -> Types.consistsOfVars t vars
 	| Seq(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
 	| Par(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
 

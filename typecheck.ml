@@ -6,6 +6,7 @@ open Extract;;
 open Extract_a;;
 open Join;;
 open List;;
+open Unparser;;
 
 (* deletes all occurrences of id:T from A *)
 (* it throws an exception if: not T<:>0 *)
@@ -24,6 +25,7 @@ let rec deleteId a id =
 	| Par(a1,a2) -> Par(deleteId a1 id, deleteId a2 id)
 
 let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit =
+(*	print_assertion a; print_string "\t"; print_exp e; print_string "\t"; print_type t; print_string "\n"; *)
 	match e, t with
 	| Id(id), _ -> typecheckId a id t cont
 	| Select(e1, id), SkipTy -> typecheck a e1 (BasicTy(id)) cont
