@@ -173,13 +173,13 @@ let ok_join_comm xs a h y c =
 			)
 
 let print_typecheck a e t a' =
-	print_string "type(";
+(*	print_string "type(";
 	print_assertion a;
 	print_string ", ";
 	print_exp e;
 	print_string ", ";
 	print_type t;
-	print_string ") = ";
+	print_string ") = "; *)
 	print_assertion a';
 	print_string "\n"	
 
