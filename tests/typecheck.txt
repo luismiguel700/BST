@@ -16,7 +16,7 @@ type
 openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
 	let 
-		openFile2:open->0 = fun (f:open) -> 0 {openFile f} 
+		openFile2:open->0 = fun (f:0;open;0) -> 0 {openFile f} 
 	in
 		let temp:0 = openFile2 file in 
 			let temp:0 = rdwrFile file in
