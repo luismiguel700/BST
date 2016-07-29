@@ -70,7 +70,7 @@ and typecheckCall a e1 e2 t cont =
 						fun (a'', h2) -> 
 							let newId = freshId () in
 								let (b, (_, _)) = join_a (map (fun (id, _) -> id) (h1@h2)) a'' (h1@h2) newId in
-									cont (b, [(newId, Skip)]) (* corrigir *)
+									cont (b, [(newId, Skip)])
 					)
 		)
 			
