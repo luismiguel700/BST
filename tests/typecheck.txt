@@ -13,14 +13,6 @@ fun1:(open->0);fun2:(close->0) | file:(open;close)
 ;;
 
 type
-fun1:(open->0);fun2:(close->0) | file:(open;close)
-(
-	let temp:0 = fun1 file in fun2 file
-)
-0
-;;
-
-type
 openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
 	let 
