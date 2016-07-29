@@ -13,7 +13,7 @@ type assertion =
 
 let rec makeAssertion id t =
 	match t with
-	| SkipTy -> Skip
+	| SkipTy -> Basic(id, SkipTy)
 	| HoleTy(id) -> raise (Fail("makeAssertion cannot be applied to holes"))
 	| VarTy(id) -> raise (Fail("makeAssertion cannot be applied to var"))
 	| SomeTy(_) -> raise (Fail("makeAssertion cannot be applied to SomeType"))
