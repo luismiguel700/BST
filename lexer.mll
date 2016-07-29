@@ -4,11 +4,11 @@
  let tableStrInt = Hashtbl.create 100;;
  let tableIntStr = Hashtbl.create 100;;
 
- (* if there is a i->s in the hashtable, then it creates an entry length->s_length and returns length *)
+ (* if there is a i->s in the hashtable, then it creates an entry length->s$length and returns length *)
  let freshId(i:int):int = 
 		let s = Hashtbl.find tableIntStr i in
 		let len = Hashtbl.length tableIntStr in (* the hashtable is always growing *)
-			let s_len = s^(string_of_int len) in
+			let s_len = s^"$"^(string_of_int len) in
 			(	
 				Hashtbl.add tableStrInt s_len len;
 				Hashtbl.add tableIntStr len s_len; 

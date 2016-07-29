@@ -1,10 +1,10 @@
 type
-fun1:(open->0);fun2:(close->0) | file:(open;close)
+fun1:(open->0);fun2:(close->0) | file:(open;close) | x:0
 (
 	let f:(open;close)->0 = 
 		fun (file:(open;close)) -> 0 
 		{
-			let temp:0 = fun1 file in fun2 file
+			let temp:0 = fun1 file in let temp:0 = fun2 file in x
 		}
 	in
 		f file
@@ -16,7 +16,7 @@ type
 openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
 	let 
-		openFile2:open->0 = fun (f:0;open;0) -> 0 {openFile f} 
+		openFile2:open->0 = fun (f:open) -> 0 {openFile f} 
 	in
 		let temp:0 = openFile2 file in 
 			let temp:0 = rdwrFile file in
