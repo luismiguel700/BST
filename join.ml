@@ -90,33 +90,33 @@ let rec split_a a x =
 		else
 			raise (VarNotFound(x))
 
-let rec join_a(xs:int list)(a:assertion)(h:Extract_a.map)(y:int):(assertion*(int*assertion)) =
+let rec join_a(xs:int list)(a:assertion)(h:Extract_a.map)(y:int):assertion =
 	match a with
 	| Skip -> raise (VarsNotFound(xs))
 	| Hole(_) -> raise (VarsNotFound(xs))
-	| Var(id) -> if mem id xs then (Var(y), (y, mapFind h id)) else raise (VarsNotFound(xs))	
+	| Var(id) -> if mem id xs then Var(y) else raise (VarsNotFound(xs))	
 	| Basic(id, _) -> raise (VarsNotFound(xs))
 	| Seq(b, c) ->
 		if Assertions.containsVars c xs then
-			let (b', (y', d)) = join_a xs b h y in (* may not be necessary *)
-			let (c', (y', e)) = join_a xs c h y in
-				(Seq(b', Assertions.subst c' (Var(y)) Skip), (y, Seq(d,e)))
+			let b' = join_a xs b h y in (* may not be necessary *)
+			let c' = join_a xs c h y in
+				Seq(b', Assertions.subst c' (Var(y)) Skip)
 		else
-			let (b', h') = join_a xs b h y in
-				(Seq(b', c), h')			
+			let b' = join_a xs b h y in
+				Seq(b', c)			
 
 	| Par(b, c) ->
 		if Assertions.containsVars b xs && Assertions.containsVars c xs then
-			let (b', (y', d)) = join_a xs b h y in
-			let (c', (y', e)) = join_a xs c h y in 
+			let b' = join_a xs b h y in
+			let c' = join_a xs c h y in 
 				let (b'', b''') = split_a b' y in
 				let (c'', c''') = split_a c' y in
-					(Par(Par(Seq(Var(y), Par(b'', c'')), b'''), c'''), (y, Par(d,e)))
+					Par(Par(Seq(Var(y), Par(b'', c'')), b'''), c''')
 		else if Assertions.containsVars b xs then
-			let (b', h') = join_a xs b h y in
-				(Par(b', c), h')
+			let b' = join_a xs b h y in
+				Par(b', c)
 		else if Assertions.containsVars c xs then
-			let (c', h') = join_a xs c h y in
-				(Par(b, c'), h')
+			let c' = join_a xs c h y in
+				Par(b, c')
 		else
 			raise (VarsNotFound(xs))

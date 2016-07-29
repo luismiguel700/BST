@@ -69,7 +69,7 @@ and typecheckCall a e1 e2 t cont =
 					(
 						fun (a'', h2) -> 
 							let newId = freshId () in
-								let (b, (_, _)) = join_a (map (fun (id, _) -> id) (h1@h2)) a'' (h1@h2) newId in
+								let b = join_a (map (fun (id, _) -> id) (h1@h2)) a'' (h1@h2) newId in
 									cont (b, [(newId, Skip)])
 					)
 		)
@@ -79,7 +79,7 @@ and typecheckLet a id tE1 e1 e2 t cont =
 	(
 		fun (a', h1) -> 
 			let newId = freshId () in
-				let (b, (_, _)) = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
+				let b = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
 					let id' = Lexer.freshId id in
 					let e2' = Exp.substId e2 id id' in 
 						typecheck (subst b (Var(newId)) (Basic(id', tE1))) e2' t
