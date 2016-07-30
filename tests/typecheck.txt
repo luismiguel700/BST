@@ -30,10 +30,74 @@ openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 ;;
 
 type
-f : (open;close;run)
+f : (open;close;run) | g:open
 (
 let x:0 = f.open in f.close
 )
 0
 ;;
 
+type
+fun1:(open->0);fun2:(close->0) | file:(open;close) 
+
+(
+	let f:(open)->0 = 
+		fun (file:(open)) -> 0 
+		{
+			let temp:0 = file.open in temp
+		}
+	in
+		stop
+)
+
+0
+;;
+
+type
+0
+(
+		fun (file:(open)) -> 0 
+		{
+			let temp:0 = file.open in temp
+		}
+)
+(open)->0
+;;
+
+type
+f:(open -> 0)
+(
+		fun (file:(open)) -> 0 
+		{
+			f file
+		}
+)
+open->0
+;;
+
+type
+f:(open -> 0);f:(close -> 0)
+(
+		fun (file:(open;close)) -> 0 
+		{
+			let x:0 = f file in let y:0 = f file in y
+		}
+)
+(open;close)->0
+;;
+
+type
+f:(open -> 0);f:(close -> 0) | g:(open;close)
+(
+let 
+h:(open;close)->0 =
+(
+		fun (file:(open;close)) -> 0 
+		{
+			let x:0 = f file in let y:0 = f file in y
+		}
+)
+in h
+)
+(open;close)->0
+;;

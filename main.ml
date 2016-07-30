@@ -188,10 +188,13 @@ let typecheck_comm a e t =
 
 	while Typecheck.hasNext () do
 		try
+			print_string ("More?\n");
 			Typecheck.next ()
 		with
 		| Fail(s) -> () (* print_string (s^"\n") *)
-	done
+	done;
+	print_string ("No.\n")
+
 
 let rec top_level lexbuf =
 	print_string "> " ;
