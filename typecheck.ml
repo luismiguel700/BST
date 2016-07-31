@@ -51,7 +51,7 @@ and typecheckFun a id tArg tRet e1 tArg2 tRet2 cont =
 		fun (_, _, _) ->
 			let id' = Lexer.freshId id in
 				let e1' = Exp.substId e1 id id' in
-					typecheck (Par(a, makeAssertion id' tArg)) e1' tRet
+					typecheck (mkPar a (makeAssertion id' tArg)) e1' tRet
 					(
 						fun (a', h) -> cont (deleteId a' id', h)
 					)
