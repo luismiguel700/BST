@@ -42,18 +42,17 @@ let rec isSkip a =
 	| Par(a1,a2) -> if isSkip a1 then isSkip a2 else false
 
 (* A=C[t] *)
+
 let rec inFst t a = 
 	match a with
 	| Skip -> false
-	| Hole(_) -> t=a
-	| Var(_) -> t=a
-	| Basic(_, _) -> t=a
 	| Seq(a1,a2) -> 
 		if isSkip a1 then
 			inFst t a2
 		else
 			inFst t a1
-	| Par(a1,a2) -> inFst t a1 || inFst t a2 
+	| Par(a1,a2) -> if inFst t a1 then true else inFst t a2 
+	| _ -> t=a
 ;;
 
 (* A=A'[~x] ? *) (* optmimizar mais tarde *)
