@@ -84,3 +84,21 @@ let rec subst a b c =
 	| Basic(_, _) -> if a=b then c else a
 	| Seq(a1,a2) -> Seq(subst a1 b c, subst a2 b c)
 	| Par(a1,a2) -> Par(subst a1 b c, subst a2 b c)
+
+let mkPar t1 t2 = 
+	match t1, t2 with
+	| Skip, _ -> t2
+	| _, Skip -> t1
+	| Basic(_,ty1), _ -> (
+            if Types.isSkip ty1 then t2 else 
+                match t2 with
+                  Basic(_,ty2) -> if Types.isSkip ty2 then t1 else Par(t1,t2)
+                  | _ -> Par(t1,t2))
+	| _, Basic(_,ty2) -> (
+            if Types.isSkip ty2 then t1 else 
+                match t1 with
+                  Basic(_,ty1) -> if Types.isSkip ty1 then t2 else Par(t1,t2)
+                  | _ -> Par(t1,t2))
+	| _, _ -> Par(t1,t2)
+
+

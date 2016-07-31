@@ -25,19 +25,25 @@ let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):uni
 	| _, Var(_) -> raise (Fail("not defined"))
 
 	| Skip, Basic(_, _) -> cont (a, b, [])
+
 	| Hole(_), Basic(_, _) -> cont (a, b, [])
+
 	| Var(id), Basic(id', _) -> raise (Fail("failed at extract("^(string_of_int id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
+
 	| Basic(id, t), Basic(id', t') when id=id' -> 
 		if Types.isSkip t || Types.isSkip t' then 
 			cont (a, b, [])
 		else
 			extrBasicBasic id t t' cont (* rever *)
+
 	| Basic(id, t), Basic(id', t') -> 
 		if Types.isSkip t || Types.isSkip t' then 
 			cont (a, b, [])
 		else
 			raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
+
 	| Seq(a1, a2), Basic(_, _) -> extrSeqAtom a1 a2 b cont
+
 	| Par(a1, a2), Basic(_, _) -> extrParAtom a1 a2 b cont
 
 	| _, Seq(b1,b2) -> extrSeq a b1 b2 cont
@@ -79,7 +85,7 @@ and extrParAtom a1 a2 b cont =
 			(
 				fun (a2', b', h2) ->
 					match b' with
-					| Var(_) -> cont (Par(a1,a2'), b', h2)
+					| Var(_) -> cont ((mkPar a1 a2'), b', h2)
 					| _ when b'=b -> raise (Fail("error in extrParAtom"))
 					| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
 			)
@@ -90,14 +96,14 @@ and extrParAtom a1 a2 b cont =
 	(
 		fun (a1', b', h1) ->
 			match b' with
-			| Var(_) ->	cont (Par(a1', a2), b', h1)
+			| Var(_) ->	cont ((mkPar a1' a2), b', h1)
 			| _ when b'=b -> 
 				extr a2 b
 				(
 					fun (a2', b', h2) ->
 						match b' with
 						| Var(_) -> raise (Fail("error in extrParAtom")) (* cont (Par(a1,a2'), SkipTy, h2) *)
-						| _ when b'=b -> cont (Par(a1',a2'), b, [])
+						| _ when b'=b -> cont ((mkPar a1' a2'), b, [])
 						| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
 				)
 			| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
@@ -125,7 +131,7 @@ and extrPar a b1 b2 cont =
 	extr a b1
 	(
 		fun (a', b1', h1) -> 
-			extr a' b2 (fun (a'', b2', h2) -> cont (a'', Par(b1', b2'), h1@h2))
+			extr a' b2 (fun (a'', b2', h2) -> cont (a'', mkPar b1' b2', h1@h2))
 	)
 ;;
 

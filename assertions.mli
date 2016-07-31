@@ -24,3 +24,5 @@ val containsVars: assertion -> int list -> bool;;
 val consistsOfVars: assertion -> (int*'a) list -> bool;;
 
 val subst: assertion -> assertion -> assertion -> assertion;;
+
+val mkPar: assertion -> assertion -> assertion;;
