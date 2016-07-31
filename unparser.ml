@@ -117,3 +117,13 @@ let rec print_exp_lev e l =
 ;;
 
 let print_exp e = print_exp_lev e 0;;
+
+let print_list f lst =
+  let rec print_elements = function
+    | [] -> ()
+    | h::t -> f h; print_string ";"; print_elements t
+  in
+  print_string "[";
+  print_elements lst;
+  print_string "]";;
+

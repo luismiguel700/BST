@@ -25,7 +25,7 @@ let rec deleteId a id =
 	| Par(a1,a2) -> Par(deleteId a1 id, deleteId a2 id)
 
 let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit =
-(*	print_assertion a; print_string "\t"; print_exp e; print_string "\t"; print_type t; print_string "\n"; *)
+	print_string "tcheck "; print_assertion a; print_string "\t"; print_exp e; print_string "\t"; print_type t; print_string "\n"; 
 	match e, t with
 	| Id(id), _ -> typecheckId a id t cont
 	| Select(e1, id), SkipTy -> typecheck a e1 (BasicTy(id)) cont
@@ -36,6 +36,8 @@ let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->uni
 	| Let(id, tE1, e1, e2), _ -> typecheckLet a id tE1 e1 e2 t cont
 
 and typecheckId a id t cont =
+	print_string "tcheck_id "; print_assertion a; print_string " "; print_int id; print_string ":"; print_type t; print_string "\n"; 
+
 	Extract_a.extr a (makeAssertion id t)
 	(
 		fun (a', b', h) -> 
@@ -82,7 +84,7 @@ and typecheckLet a id tE1 e1 e2 t cont =
 				let b = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
 					let id' = Lexer.freshId id in
 					let e2' = Exp.substId e2 id id' in 
-						(* print_assertion b; print_string "\t"; *)
+						print_assertion b; print_string " :-)\t"; 
 						typecheck (subst b (Var(newId)) (Basic(id', tE1))) e2' t
 						(
 							fun (a'', h2) -> cont (deleteId a'' id', h2)
