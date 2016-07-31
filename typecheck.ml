@@ -24,6 +24,14 @@ let rec deleteId a id =
 	| Seq(a1,a2) -> Seq(deleteId a1 id, deleteId a2 id)
 	| Par(a1,a2) -> Par(deleteId a1 id, deleteId a2 id)
 
+(*
+
+what are the assumptions in the arguments of typecheck ?
+Is the assertion "a" "variable/hole" free ?
+Does the assertion passed to the continuation always have one or zero variables ? 
+ 
+*)
+
 let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->unit):unit =
 	print_string "tcheck "; print_assertion a; print_string "\t"; print_exp e; print_string "\t"; print_type t; print_string "\n"; 
 	match e, t with
@@ -48,7 +56,7 @@ and typecheckId a id t cont =
 	(
 		fun (a', b', h) -> 
 			if consistsOfVars b' h then (
-				(* should not we join here ? *)
+				(* should not we join here ?? *)
 				cont (a', h) )
 			else
 				raise (Fail("typechecking of the identifier"^(Hashtbl.find Lexer.tableIntStr id)^": not empty residue"))
