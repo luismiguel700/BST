@@ -60,7 +60,7 @@ and typecheckFun a id tArg tRet e1 tArg2 tRet2 cont =
 					typecheck (mkPar a (makeAssertion id tArg)) e1 tRet
 					(
 						fun (a', h) -> 
-						cont (deleteId a' id, h)
+						let clean = deleteId a' in cont (clean, h)
 					)
 	)
 
