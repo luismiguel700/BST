@@ -9,7 +9,7 @@ open List;;
 open Unparser;;
 
 (* deletes all occurrences of id:T from A *)
-(* it throws an exception if: not T<:>0 *)
+(* throws an exception if: not T<:>0 *)
 let rec deleteId a id =
 	match a with
 	| Skip -> a
@@ -21,8 +21,8 @@ let rec deleteId a id =
 		else
 			raise (Fail("cannot delete id"^(Hashtbl.find Lexer.tableIntStr id)^" its type is not stop"))
 	| Basic(_, _) -> a
-	| Seq(a1,a2) -> Seq(deleteId a1 id, deleteId a2 id)
-	| Par(a1,a2) -> Par(deleteId a1 id, deleteId a2 id)
+	| Seq(a1,a2) -> mkSeq (deleteId a1 id) (deleteId a2 id)
+	| Par(a1,a2) -> mkPar (deleteId a1 id) (deleteId a2 id)
 
 (*
 
@@ -56,7 +56,6 @@ and typecheckId a id t cont =
 	(
 		fun (a', b', h) -> 
 			if consistsOfVars b' h then (
-				(* should not we join here ?? *)
 				cont (a', h) )
 			else
 				raise (Fail("typechecking of the identifier"^(Hashtbl.find Lexer.tableIntStr id)^": not empty residue"))
@@ -69,7 +68,7 @@ and typecheckFun a id tArg tRet e1 tArg2 tRet2 cont =
 					typecheck (mkPar a (makeAssertion id tArg)) e1 tRet
 					(
 						fun (a', h) -> 
-						let clean = deleteId a' in cont (clean, h)
+						let clean = deleteId a' id in cont (clean, h)
 					)
 	)
 
