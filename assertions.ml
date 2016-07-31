@@ -38,8 +38,8 @@ let rec isSkip a =
 	| Hole(_) -> false
 	| Var(_) -> false
 	| Basic(_, t) -> Types.isSkip t
-	| Seq(a1,a2) -> isSkip a1 && isSkip a2
-	| Par(a1,a2) -> isSkip a1 && isSkip a2
+	| Seq(a1,a2) -> if isSkip a1 then isSkip a2 else false
+	| Par(a1,a2) -> if isSkip a1 then isSkip a2 else false
 
 (* A=C[t] *)
 let rec inFst t a = 
