@@ -39,6 +39,7 @@ let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):uni
 	| Basic(id, t), Basic(id', t') -> 
 		if Types.isSkip t || Types.isSkip t' then 
 			cont (a, b, [])
+
 		else
 			raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
 
