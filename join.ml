@@ -102,10 +102,10 @@ let rec join_a(xs:int list)(a:assertion)(h:Extract_a.map)(y:int):assertion =
 		if Assertions.containsVars c xs then
 			let b' = join_a xs b h y in (* may not be necessary *)
 			let c' = join_a xs c h y in
-				Seq(b', Assertions.subst c' (Var(y)) Skip)
+				(mkSeq b' (Assertions.subst c' (Var(y)) Skip))
 		else
 			let b' = join_a xs b h y in
-				Seq(b', c)			
+				(mkSeq b' c)			
 
 	| Par(b, c) ->
 		if Assertions.containsVars b xs && Assertions.containsVars c xs then
@@ -113,7 +113,12 @@ let rec join_a(xs:int list)(a:assertion)(h:Extract_a.map)(y:int):assertion =
 			let c' = join_a xs c h y in 
 				let (b'', b''') = split_a b' y in
 				let (c'', c''') = split_a c' y in 
-					(mkPar (mkPar (Seq(Var(y), (mkPar b'' c''))) b''') c''')
+					(mkPar (
+					   mkPar (
+ 					  (mkSeq (Var(y)) (mkPar b'' c''))
+					     ) 
+    					    b''') 
+					  c''')
 		else if Assertions.containsVars b xs then
 			let b' = join_a xs b h y in
 				(mkPar b' c)
