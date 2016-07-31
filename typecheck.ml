@@ -56,6 +56,7 @@ and typecheckId a id t cont =
 	(
 		fun (a', b', h) -> 
 			if consistsOfVars b' h then (
+                                (* shouldn't we JOIN? what is the invariant ?? *)
 				cont (a', h) )
 			else
 				raise (Fail("typechecking of the identifier"^(Hashtbl.find Lexer.tableIntStr id)^": not empty residue"))
