@@ -92,7 +92,7 @@ let rec split_a a x =
 
 let rec join_a(xs:int list)(a:assertion)(h:Extract_a.map)(y:int):assertion =
 	match a with
-	| Skip -> Skip (* raise (VarsNotFound(xs)) *)
+	| Skip -> raise (VarsNotFound(xs))
 	| Hole(_) -> raise (VarsNotFound(xs))
 	| Var(id) -> if mem id xs then Var(y) else raise (VarsNotFound(xs))	
 	| Basic(id, _) -> raise (VarsNotFound(xs))
