@@ -94,7 +94,7 @@ h:(open;close)->0 =
 (
 		fun (file:(open;close)) -> 0 
 		{
-			let x:0 = f file in let y:0 = f file in y
+			let x:0 = f file in let y:0 = f file in stop
 		}
 )
 in h

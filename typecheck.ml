@@ -82,6 +82,7 @@ and typecheckLet a id tE1 e1 e2 t cont =
 				let b = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
 					let id' = Lexer.freshId id in
 					let e2' = Exp.substId e2 id id' in 
+						(* print_assertion b; print_string "\t"; *)
 						typecheck (subst b (Var(newId)) (Basic(id', tE1))) e2' t
 						(
 							fun (a'', h2) -> cont (deleteId a'' id', h2)
