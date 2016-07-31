@@ -93,7 +93,6 @@ let rec split_a a x =
 
 let rec join_a(xs:int list)(a:assertion)(h:Extract_a.map)(y:int):assertion =
 	print_string "join_a ";print_list print_int xs; print_assertion a; print_string "\n";
-	if (xs == []) then a else
 	match a with
 	| Skip -> print_string "join_a_f\n"; raise (VarsNotFound(xs))
 	| Hole(_) ->print_string "join_a_f\n";  raise (VarsNotFound(xs))
