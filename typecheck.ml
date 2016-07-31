@@ -19,7 +19,7 @@ let rec deleteId a id =
 		if Types.isSkip t then
 			Skip
 		else
-			raise (Fail("cannot delete id"^(Hashtbl.find Lexer.tableIntStr id)^" because its type is not equivalent to stop"))
+			raise (Fail("cannot delete id"^(Hashtbl.find Lexer.tableIntStr id)^" its type is not stop"))
 	| Basic(_, _) -> a
 	| Seq(a1,a2) -> Seq(deleteId a1 id, deleteId a2 id)
 	| Par(a1,a2) -> Par(deleteId a1 id, deleteId a2 id)
@@ -30,10 +30,16 @@ let rec typecheck (a:assertion)(e:exp)(t:ty)(cont:(assertion*Extract_a.map)->uni
 	| Id(id), _ -> typecheckId a id t cont
 	| Select(e1, id), SkipTy -> typecheck a e1 (BasicTy(id)) cont
 	| Select(_, _), _ -> raise (Fail("cannot extract a select expression with a type different from stop"))
-	| Fun(id, tArg, tRet, e1), FunTy(tArg2, tRet2) -> typecheckFun a id tArg tRet e1 tArg2 tRet2 cont
+	| Fun(id, tArg, tRet, e1), FunTy(tArg2, tRet2) -> (* corrected confusion in alpha conversion *)
+		let id' = Lexer.freshId id in
+		let e1' = Exp.substId e1 id id' in
+		typecheckFun a id' tArg tRet e1' tArg2 tRet2 cont
 	| Fun(_, _, _, _), _ -> raise (Fail("not a function type"))
 	| Call(e1, e2), _ -> typecheckCall a e1 e2 t cont
-	| Let(id, tE1, e1, e2), _ -> typecheckLet a id tE1 e1 e2 t cont
+	| Let(id, tE1, e1, e2), _ ->  (* corrected confusion in alpha conversion *)
+		let id' = Lexer.freshId id in
+		let e2' = Exp.substId e2 id id' in
+		typecheckLet a id' tE1 e1 e2' t cont
 
 and typecheckId a id t cont =
 	print_string "tcheck_id "; print_assertion a; print_string " "; print_int id; print_string ":"; print_type t; print_string "\n"; 
@@ -41,8 +47,8 @@ and typecheckId a id t cont =
 	Extract_a.extr a (makeAssertion id t)
 	(
 		fun (a', b', h) -> 
-			if consistsOfVars b' h then
-				cont (a', h)
+			if consistsOfVars b' h then (
+				cont (a', h) )
 			else
 				raise (Fail("typechecking of the identifier"^(Hashtbl.find Lexer.tableIntStr id)^": not empty residue"))
 	)
@@ -51,11 +57,10 @@ and typecheckFun a id tArg tRet e1 tArg2 tRet2 cont =
 	Extract.extr (FunTy(tArg, tRet)) (FunTy(tArg2, tRet2))
 	(
 		fun (_, _, _) ->
-			let id' = Lexer.freshId id in
-				let e1' = Exp.substId e1 id id' in
-					typecheck (mkPar a (makeAssertion id' tArg)) e1' tRet
+					typecheck (mkPar a (makeAssertion id tArg)) e1 tRet
 					(
-						fun (a', h) -> cont (deleteId a' id', h)
+						fun (a', h) -> 
+						cont (deleteId a' id, h)
 					)
 	)
 
@@ -81,13 +86,13 @@ and typecheckLet a id tE1 e1 e2 t cont =
 	(
 		fun (a', h1) -> 
 			let newId = freshId () in
+				print_assertion a'; print_string " :-|\n"; 
 				let b = join_a (map (fun (id, _) -> id) h1) a' h1 newId in
-					let id' = Lexer.freshId id in
-					let e2' = Exp.substId e2 id id' in 
-						print_assertion b; print_string " :-)\t"; 
-						typecheck (subst b (Var(newId)) (Basic(id', tE1))) e2' t
+						typecheck (subst b (Var(newId)) (Basic(id, tE1))) e2 t
 						(
-							fun (a'', h2) -> cont (deleteId a'' id', h2)
+							fun (a'', h2) -> 
+							 (  	print_assertion a''; print_string " body!\n" ;
+								cont (deleteId a'' id, h2) )
 						)
 	)
 

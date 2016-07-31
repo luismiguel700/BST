@@ -180,6 +180,7 @@ let print_typecheck a e t a' =
 	print_string ", ";
 	print_type t;
 	print_string ") = "; *)
+	print_string "Yes: ";
 	print_assertion a';
 	print_string "\n"	
 

@@ -16,7 +16,7 @@ let rec substHolesVars a h =
 	| (id,_)::tail -> substHolesVars (subst a (Hole(id)) (Var(id))) tail
 
 let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):unit = 
-(*	print_assertion a; print_string ", "; print_assertion b; print_string "\n"; *)
+	print_string "extr: "; print_assertion a; print_string ", "; print_assertion b; print_string "\n"; 
 	match a, b with
 	| _, Skip -> cont (a, b, [])
 	

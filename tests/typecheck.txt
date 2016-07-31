@@ -87,7 +87,7 @@ f:(open -> 0);f:(close -> 0)
 ;;
 
 type
-f:(open -> 0);f:(close -> 0) 
+f:(open -> 0);f:(close -> 0) | r:foo
 (
 let 
 h:(open;close)->0 =
@@ -101,3 +101,15 @@ in h
 )
 (open;close)->0
 ;;
+
+type
+f:(open;close)
+(
+f.open
+)
+0
+;;
+
+type
+0
+(fun (x:0) -> 0 { x })
