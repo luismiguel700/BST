@@ -12,17 +12,15 @@ open Unparser;;
 (* throws an exception if: not T<:>0 *)
 let rec deleteId a id =
 	match a with
-	| Skip -> a
-	| Hole(_) -> a
-	| Var(_) -> a
+	| Seq(a1,a2) -> mkSeq (deleteId a1 id) (deleteId a2 id)
+	| Par(a1,a2) -> mkPar (deleteId a1 id) (deleteId a2 id)
 	| Basic(id', t) when id=id' -> 
 		if Types.isSkip t then
 			Skip
 		else
 			raise (Fail("cannot delete id"^(Hashtbl.find Lexer.tableIntStr id)^" its type is not stop"))
 	| Basic(_, _) -> a
-	| Seq(a1,a2) -> mkSeq (deleteId a1 id) (deleteId a2 id)
-	| Par(a1,a2) -> mkPar (deleteId a1 id) (deleteId a2 id)
+	| _ -> a
 
 (*
 
