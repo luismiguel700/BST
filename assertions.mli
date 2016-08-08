@@ -17,11 +17,15 @@ val makeCanonical: assertion -> assertion;;
 
 val isSkip: assertion -> bool;;
 
-val inFst: assertion -> assertion -> bool;;
+(* val inFst: assertion -> assertion -> bool;; *)
+
+val inFst_act: int -> assertion -> bool;;
 
 val containsVars: assertion -> int list -> bool;;
 
-val consistsOfVars: assertion -> (int*'a) list -> bool;;
+val consistsOfVars: assertion -> int list -> bool;;
+
+val consistsOfVarsEnv: assertion -> (int*assertion) list -> bool;;
 
 val subst: assertion -> assertion -> assertion -> assertion;;
 

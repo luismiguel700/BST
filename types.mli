@@ -17,10 +17,16 @@ some =
 
 val isSkip: ty -> bool;;
 
-val inFst: ty -> ty -> bool;;
+val inFst: ty -> ty -> bool;; 
 
 val containsVars: ty -> int list -> bool;;
 
-val consistsOfVars: ty -> (int*'a) list -> bool;;
+val consistsOfVars: ty -> int list -> bool;;
+
+val consistsOfVarsEnv: ty -> (int*ty) list -> bool;;
 
 val subst: ty -> ty -> ty -> ty;;
+
+val mkPar: ty -> ty -> ty;;
+
+val mkSeq: ty -> ty -> ty;;

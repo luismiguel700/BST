@@ -19,7 +19,7 @@ some =
 let rec isSkip a =
 	match a with
 	| SkipTy -> true
-	| HoleTy(_) -> false
+	| HoleTy(_) -> true
 	| VarTy(_) -> false
 	| SomeTy(_) -> false
 	| FunTy(_) -> false
@@ -34,13 +34,9 @@ let rec inFst t a =
 	| HoleTy(_) -> t=a
 	| VarTy(_) -> t=a
 	| SomeTy(_) -> false
-	| FunTy(_, _) -> t=a
+	| FunTy(_, _) -> (match t with FunTy(_,_) -> true | _ -> false)
 	| BasicTy(_) -> t=a
-	| SeqTy(a1,a2) -> 
-		if isSkip a1 then
-			inFst t a2
-		else
-			inFst t a1
+	| SeqTy(a1,a2) -> inFst t a1 || ( isSkip a1  && inFst t a2)
 	| ParTy(a1,a2) -> inFst t a1 || inFst t a2 
 ;;
 
@@ -60,12 +56,24 @@ let rec consistsOfVars a vars =
 	match a with
 	| SkipTy -> true
 	| HoleTy(_) -> false
-	| VarTy(id) -> exists (fun (id', _) -> id=id') vars
+	| VarTy(id) -> mem id vars
 	| SomeTy(_) -> false
 	| FunTy(t, u) -> consistsOfVars t vars && consistsOfVars u vars
 	| BasicTy(_) -> false
 	| SeqTy(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
 	| ParTy(a1,a2) -> consistsOfVars a1 vars && consistsOfVars a2 vars
+
+let rec consistsOfVarsEnv a env =
+	match a with
+	| BasicTy(_) -> false
+	| SkipTy -> true
+	| SeqTy(a1,a2) -> consistsOfVarsEnv a1 env && consistsOfVarsEnv a2 env
+	| ParTy(a1,a2) -> consistsOfVarsEnv a1 env && consistsOfVarsEnv a2 env
+	| FunTy(t, u) -> consistsOfVarsEnv t env && consistsOfVarsEnv u env
+	| VarTy(id) -> exists (fun (x,y) -> x = id) env
+	| HoleTy(_) -> false
+	| SomeTy(_) -> false
+
 
 (* A{C/b} *)
 let rec subst a b c =
@@ -78,3 +86,15 @@ let rec subst a b c =
 	| BasicTy(_) -> if a=b then c else a
 	| SeqTy(a1,a2) -> SeqTy(subst a1 b c, subst a2 b c)
 	| ParTy(a1,a2) -> ParTy(subst a1 b c, subst a2 b c)
+
+let mkPar t1 t2 = 
+	match t1, t2 with
+	| SkipTy, _ -> t2
+	| _, SkipTy -> t1
+	| _, _ -> ParTy(t1,t2)
+
+let mkSeq t1 t2 = 
+	match t1, t2 with
+	| SkipTy, _ -> t2
+	| _, SkipTy -> t1
+	| _, _ -> SeqTy(t1,t2)

@@ -71,59 +71,36 @@ let rec join(xs: int list)(a:ty)(h:Extract.map)(y:int):(ty*(int*ty)) =
 		else
 			raise (VarsNotFound(xs))
 
-let rec split_a a x =
+let rec promote(a:assertion) xs =
 	match a with
-	| Skip -> raise (VarNotFound(x))
-	| Hole(_) -> raise (VarNotFound(x))
-	| Var(id) when id=x -> (Skip, Skip)
-	| Var(_) -> raise (VarNotFound(x))
-	| Basic(_, _) -> raise (VarNotFound(x))
-	| Seq(b, c) -> 
-		let (a', a'') = split_a b x in
-			(Seq(Par(a', a''), c), Skip)
-	| Par(b, c) ->
-		if Assertions.inFst (Var(x)) b then
-			let (b', b'') = split_a b x in
-				(b', Par(b'', c))
-		else if Assertions.inFst (Var(x)) c then
-			let (c', c'') = split_a c x in
-				(c', Par(b, c''))
-		else
-			raise (VarNotFound(x))
+	| Skip -> a
+	| Hole(_) ->a
+	| Var(id) -> if mem id xs then Skip else a
+	| Basic(_, _) -> a
+	| Seq(a1, a2) -> let a1' = promote a1 xs in
+	                   if isSkip a1' then promote a2 xs
+                                         else mkSeq a1' a2
+	| Par(a1, a2) -> mkPar (promote a1 xs) (promote a2 xs)
 
-let rec join_a(xs:int list)(a:assertion)(h:Extract_a.map)(y:int):assertion =
-	print_string "join_a ";print_list print_int xs; print_assertion a; print_string "\n";
+let rec join_ass(xs:int list)(a:assertion) y =
 	match a with
-	| Skip -> print_string "join_a_f\n"; raise (VarsNotFound(xs))
-	| Hole(_) ->print_string "join_a_f\n";  raise (VarsNotFound(xs))
-	| Var(id) -> if mem id xs then Var(y) else raise (VarsNotFound(xs))	
-	| Basic(id, _) -> print_string "join_a_f\n"; raise (VarsNotFound(xs))
-	| Seq(b, c) ->
-		if Assertions.containsVars c xs then
-			let b' = join_a xs b h y in (* may not be necessary *)
-			let c' = join_a xs c h y in
-				(mkSeq b' (Assertions.subst c' (Var(y)) Skip))
-		else
-			let b' = join_a xs b h y in
-				(mkSeq b' c)			
+	| Skip -> (a,a)
+	| Hole(_) -> (Skip,a)
+	| Var(id) -> if (mem id xs) then (Var(y), Skip) else (Skip, a)	
+	| Basic(_, _) -> (Skip, a)
+	| Seq(a1, a2) ->
+		 if (isSkip a1) then join_ass xs a2 y else 
+	                 let (a1',a1'') = join_ass xs a1 y
+			 in 
+                         if (isSkip a2) then (a1',a1'')
+			 else if isSkip a1' then (Skip, mkSeq a1'' a2) 
+                         else (if a1'=Var(y) && isSkip a1'' then 
+				  let (a2',a2'') = join_ass xs a2 y in
+				     (mkSeq a1' (promote ( mkPar a2' a2'') [y]), Skip)
+                              else  (mkSeq (mkPar a1' a1'') a2, Skip))
+	| Par(a1, a2) -> let (a1',a1'') = join_ass xs a1 y in
+			 let (a2',a2'') = join_ass xs a2 y in (
+                         ( mkSeq (Var(y)) (promote (mkPar a1' a2') [y]), mkPar a1'' a2'' ) )
 
-	| Par(b, c) ->
-		if Assertions.containsVars b xs && Assertions.containsVars c xs then
-			let b' = join_a xs b h y in
-			let c' = join_a xs c h y in 
-				let (b'', b''') = split_a b' y in
-				let (c'', c''') = split_a c' y in 
-					(mkPar (
-					   mkPar (
- 					  (mkSeq (Var(y)) (mkPar b'' c''))
-					     ) 
-    					    b''') 
-					  c''')
-		else if Assertions.containsVars b xs then
-			let b' = join_a xs b h y in
-				(mkPar b' c)
-		else if Assertions.containsVars c xs then
-			let c' = join_a xs c h y in
-				(mkPar b c')
-		else
-			raise (VarsNotFound(xs))
+let rec join_as(xs:int list)(a:assertion)(y:int) =
+        let (a1,a2) = join_ass xs a y in mkPar a1 a2

@@ -8,4 +8,4 @@ exception VarsNotFound of int list;;
 
 val join: (int list) -> ty -> Extract.map -> int -> (ty*(int*ty))
 
-val join_a: (int list) -> assertion -> (Extract_a.map) -> int -> assertion
+val join_as: (int list) -> assertion -> int -> assertion

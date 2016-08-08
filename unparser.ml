@@ -102,13 +102,23 @@ let rec print_exp_lev e l =
 		print_exp_lev e2 level0;
 		if l>level0 then
 			print_string ")";
+
+	| Seqe(e1, e2) ->
+		if l>level0 then 
+			print_string "(";
+		print_exp_lev e1 level0;
+			print_string " ; ";
+		print_exp_lev e2 level0;
+		if l>level0 then
+			print_string ")";
+
 	| Call(e1, e2) ->
-		if l>=level1 then
+		if l>level2 then
 			print_string "(";
 		print_exp_lev e1 level1;
 		print_string " ";
 		print_exp_lev e2 level1;
-		if l>=level1 then
+		if l>level2 then
 			print_string ")"
 	| Select(e1, id) ->
 		print_exp_lev e1 level2;

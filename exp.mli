@@ -4,6 +4,7 @@ type exp =
 | Id of int
 | Fun of int * ty * ty * exp
 | Call of exp * exp
+| Seqe of exp * exp
 | Let of int * ty * exp * exp
 | Select of exp * int
 ;;

@@ -172,7 +172,7 @@ let ok_join_comm xs a h y c =
 				print_string "\n"
 			)
 
-let print_typecheck a e t a' =
+let print_typecheck a e t a'  =
 (*	print_string "type(";
 	print_assertion a;
 	print_string ", ";
@@ -180,19 +180,21 @@ let print_typecheck a e t a' =
 	print_string ", ";
 	print_type t;
 	print_string ") = "; *)
-	print_string "Yes: ";
+	print_string "Yes : ";
 	print_assertion a';
-	print_string "\n"	
+	print_string " " ;
+	let _= read_line () in print_string "\n"
+
 
 let typecheck_comm a e t =
 	Typecheck.init a e t (fun (a', _) -> print_typecheck a e t a');
 
 	while Typecheck.hasNext () do
 		try
-			print_string ("More?\n");
+		        (* print_string "NEXT:\n"; *)
 			Typecheck.next ()
 		with
-		| Fail(s) -> () (* print_string (s^"\n") *)
+		| Fail(s) -> () (* print_string ("FAIL : "^s^"\n") *)
 	done;
 	print_string ("No.\n")
 

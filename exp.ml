@@ -4,6 +4,7 @@ type exp =
 | Id of int
 | Fun of int * ty * ty * exp
 | Call of exp * exp
+| Seqe of exp * exp
 | Let of int * ty * exp * exp
 | Select of exp * int
 ;;
@@ -13,6 +14,7 @@ let rec substId e x y =
 	| Id(id) -> if id = x then Id(y) else e
 	| Fun(id, tArg, tRet, e1) -> if id = x then e else Fun(id, tArg, tRet, substId e1 x y)
 	| Call(e1, e2) -> Call(substId e1 x y, substId e2 x y)
+	| Seqe(e1, e2) -> Seqe(substId e1 x y, substId e2 x y)
 	| Let(id, t, e1, e2) -> 
 		if id = x then 
 			Let(id, t, substId e1 x y, e2) 

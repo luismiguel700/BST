@@ -2,6 +2,7 @@ open Exceptions;;
 open Types;;
 open Assertions;;
 open Unparser;;
+open List;;
 
 type map = (int * assertion) list (* optimizar mais tarde com hashmaps *)
 
@@ -16,68 +17,70 @@ let rec substHolesVars a h =
 	| (id,_)::tail -> substHolesVars (subst a (Hole(id)) (Var(id))) tail
 
 let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):unit = 
-	print_string "extr: "; print_assertion a; print_string ", "; print_assertion b; print_string "\n"; 
 	match a, b with
 	| _, Skip -> cont (a, b, [])
 	
-	| _, Hole(_) -> raise (Fail("not defined"))
+	| _, Hole(_) -> raise (Fail("unexpected extract type"))
 
-	| _, Var(_) -> raise (Fail("not defined"))
+	| _, Var(_) -> raise (Fail("unexpected extract type"))
 
 	| Skip, Basic(_, _) -> cont (a, b, [])
 
-	| Hole(_), Basic(_, _) -> cont (a, b, [])
+	| Hole(_), Basic(_, _) ->  cont (a, b, [])  (* problem b = 0->0 ==> b consistsofvars .. but no! *)
 
-	| Var(id), Basic(id', _) -> raise (Fail("failed at extract("^(string_of_int id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
+	| Var(id), Basic(id', t) -> 
+                if Types.isSkip t then cont (a, b, [])
+                else raise (Fail("cannot extract "^(Hashtbl.find Lexer.tableIntStr id')^" fm Var("^(string_of_int id)^")"))
 
 	| Basic(id, t), Basic(id', t') when id=id' -> 
-		if Types.isSkip t || Types.isSkip t' then 
-			cont (a, b, [])
+		if Types.isSkip t then
+		   cont (a, b, [])
+		else if Types.isSkip t' then 
+		   cont (a, b, [])
 		else
-			extrBasicBasic id t t' cont (* rever *)
+		extrBasicBasic id t t' cont
 
 	| Basic(id, t), Basic(id', t') -> 
-		if Types.isSkip t || Types.isSkip t' then 
-			cont (a, b, [])
-
+		if Types.isSkip t then
+		  cont (a, b, [])
+		else if Types.isSkip t' then
+		  cont (a, b, [])
 		else
-			raise (Fail("failed at extract("^(Hashtbl.find Lexer.tableIntStr id)^", "^(Hashtbl.find Lexer.tableIntStr id')^")"))
+		  raise (Fail("cannot extract "^(Hashtbl.find Lexer.tableIntStr id')^" fm "^(Hashtbl.find Lexer.tableIntStr id)))
 
 	| Seq(a1, a2), Basic(_, _) -> extrSeqAtom a1 a2 b cont
 
-	| Par(a1, a2), Basic(_, _) -> extrParAtom a1 a2 b cont
+	| Par(a1, a2), Basic(id, _) -> extrParAtom a1 a2 b id cont
 
 	| _, Seq(b1,b2) -> extrSeq a b1 b2 cont
 	
 	| _, Par(b1,b2) -> extrPar a b1 b2 cont
 
-and extrBasicBasic id t1 t2 cont =
+and extrBasicBasic id t1 t2 cont = 
 	Extract.extr t1 t2
 	(
 		fun (t1', t2', h) ->
-			if Types.consistsOfVars t1' h && Types.consistsOfVars t2' h then
+			if Types.consistsOfVarsEnv t1' h && Types.consistsOfVarsEnv t2' h then
 				let newId = Extract.freshId () in
 					cont (Var(newId), Var(newId), [(newId, Basic(id, t1))])
 			else
-				raise (Fail("failed at extracting id "^(Hashtbl.find Lexer.tableIntStr id)))
+				raise (Fail("cannot extract type fm "^(Hashtbl.find Lexer.tableIntStr id)))
 	)	
 
 and extrSeqAtom a1 a2 b cont =
+        (* EXTR: Seq(a1,a2) b *)
 	extr a1 b
 	(
 		fun (a1', b', h1) -> 
-			match b' with
-			| Var(_) -> cont (Seq(a1', a2), b', h1)
-			| _ when b'=b -> 
-					extr a2 b 
-					(
-						fun (a2', b', h2) -> 
-							cont ((if isSkip a1' then a2' else Seq(a1', a2')), b', h2)
-					)
-			| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
+		    if Assertions.consistsOfVarsEnv b' h1 then
+			cont ((mkSeq a1' a2), b', h1)
+		    else 
+		      extr a2 b ( fun (a2', b', h2) -> cont ( (mkSeq a1' a2'), b', h2) )
 	)
 
-and extrParAtom a1 a2 b cont =
+and extrParAtom a1 a2 b id cont =
+        (* EXTR: Par(a1,a2) b *)
+        if inFst_act id a2 then
 	Stack.push 
 	(
 		Stack.create (),
@@ -85,10 +88,8 @@ and extrParAtom a1 a2 b cont =
 			extr a2 b
 			(
 				fun (a2', b', h2) ->
-					match b' with
-					| Var(_) -> cont ((mkPar a1 a2'), b', h2)
-					| _ when b'=b -> raise (Fail("error in extrParAtom"))
-					| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
+				      if consistsOfVarsEnv b' h2 then cont ((mkPar a1 a2'), b', h2)
+				      else raise (Fail("failed par branch -- backtrack"))
 			)
 	)
 	Extract.stack;
@@ -96,36 +97,26 @@ and extrParAtom a1 a2 b cont =
 	extr a1 b
 	(
 		fun (a1', b', h1) ->
-			match b' with
-			| Var(_) ->	cont ((mkPar a1' a2), b', h1)
-			| _ when b'=b -> 
-				extr a2 b
-				(
-					fun (a2', b', h2) ->
-						match b' with
-						| Var(_) -> raise (Fail("error in extrParAtom")) (* cont (Par(a1,a2'), SkipTy, h2) *)
-						| _ when b'=b -> cont ((mkPar a1' a2'), b, [])
-						| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
-				)
-			| _ -> raise (Fail("the residue should be a var or the atom being extracted"))
+		     if consistsOfVarsEnv b' h1 then cont ((mkPar a1' a2), b', h1)
+                     else raise (Fail("failed par branch -- backtrack"))
 	)
 
 and extrSeq a b1 b2 cont =
 	extr a b1
 	(
 		fun (a', b1', h1) -> 
-			if consistsOfVars b1' h1 then
+			if Assertions.consistsOfVarsEnv b1' h1 then
 				let ah' = substVarsHoles a' h1 in
 					extr ah' b2
 					(
 						fun (ah'', b2', h2) ->
 							let a'' = substHolesVars ah'' h1 in
-								cont (a'', Seq(b1', b2'), h1@h2)
+								cont (a'', (mkSeq b1' b2'), h1@h2)
 					)
-			else if consistsOfVars a' h1 then
-				cont (a', Seq(b1', b2), h1)
+			else if Assertions.consistsOfVarsEnv a' h1 then
+				cont (a', (mkSeq b1' b2), h1)
 			else
-				raise (Fail("one of the residues should only contain vars"))
+				raise (Fail("unexpected state"))
 	)
 
 and extrPar a b1 b2 cont =

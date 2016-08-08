@@ -128,10 +128,11 @@ exp:
 | exp2 { $1 }
 | FUN LPAR ID COLON ty RPAR ARROW ty LPAR3 exp RPAR3 { Fun($3, $5, $8, $10) }
 | LET ID COLON ty EQ exp IN exp { Let($2, $4, $6, $8) }
+| exp2 SEQ exp { Seqe($1, $3) }
 
 exp2:
 | exp_basic { $1 }
-| exp_basic exp2 { Call($1, $2) }
+| exp2 exp_basic { Call($1, $2) }
 
 exp_basic:
 | ID { Id($1) }

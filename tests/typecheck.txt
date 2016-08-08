@@ -1,3 +1,26 @@
+=== POSITIVE EXAMPLES
+
+type
+openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
+(
+	let 
+		openFile2:open->0 = fun (f:open) -> 0 {openFile f} 
+	in
+	   let x:0 = openFile2 file in rdwrFile file
+)
+
+0
+
+;;
+
+type
+openFile2:open->0;rdwrFile:((read|write)->0)|file:open;(file:read|file:write);file:close
+(
+let x:0 = openFile2 file in rdwrFile file
+)
+0
+;;
+
 type
 fun1:(open->0);fun2:(close->0) | file:(open;close) 
 
@@ -10,12 +33,11 @@ fun1:(open->0);fun2:(close->0) | file:(open;close)
 	in
 		f file
 )
-
 0
 ;;
 
 type
-openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
+(openFile:(open->0); rdwrFile:((read;write)->0)) | file:(open;(read|write);close)
 (
 	let 
 		openFile2:open->0 = fun (f:0;open;0) -> 0 {openFile f} 
@@ -30,15 +52,73 @@ openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 ;;
 
 type
+openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
+(
+	let 
+		openFile2:open->0 = fun (f:open) -> 0 {openFile f} 
+	in
+	   openFile2 
+)
+
+open->0
+
+;;
+
+type
+openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
+(
+	let 
+		openFile2:open->0 = fun (f:open) -> 0 {openFile f} 
+	in
+	   openFile2 file
+)
+
+0
+
+;;
+
+type
+openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
+(
+	let 
+		openFile2:open->0 = fun (f:open) -> 0 {openFile f} 
+	in
+	   let x:0 = openFile2 file in rdwrFile file
+)
+
+0
+
+;;
+
+type
 f : (open;close;run) | g:open
 (
-let x:0 = f.open in f.close
+let x:0 = f.open in 
+let y:0 = f.close in f.run
 )
 0
 ;;
 
 type
-fun1:(open->0);fun2:(close->0) | file:(open;close) 
+f : ((open -> R);S) | g:(open;close)
+(
+f g)
+R
+;;
+
+type
+f : ((open -> R);S) | g:(open;close)
+(
+  let x:(open;close) = g in x
+
+)
+(open;close)
+;;
+
+
+
+type
+fun1:(open->0);fun2:(close->0) | filxe:(open;close) | foo:0
 
 (
 	let f:(open)->0 = 
@@ -47,10 +127,11 @@ fun1:(open->0);fun2:(close->0) | file:(open;close)
 			let temp:0 = file.open in temp
 		}
 	in
-		stop
+		f
 )
 
-0
+(open)->0
+
 ;;
 
 type
@@ -103,14 +184,133 @@ in h
 ;;
 
 type
-f:(open;close)
+0
 (
-f.open
+fun (x:0) -> 0 {x}
+)
+0 -> 0
+;;
+
+
+type
+0
+(
+(
+fun (x:0) -> 0 {x}
+) y)
+0
+;;
+
+
+
+type
+y:foo
+(
+y
+)
+0
+;;
+
+type
+fun1:(open->0);fun2:(close->0) | file:(open;close) 
+
+(
+	let f:(open)->0 = 
+		fun (file:(open)) -> 0 
+		{
+			let temp:0 = file.open in temp
+		}
+	in
+		(f file)
+)
+
+0
+;;
+
+type
+f:0->0 | y:stop
+(f y)
+0
+;;
+
+type
+a:(foo;joo) |a:foo | c:fie
+(a.foo)
+0
+;;
+
+type
+f:(o;(r|w);c)
+(
+let x:(o;r;w) = f in 
+  let y1:0 = x.o in
+   let y2:0 = x.r in
+    let y3:0 = x.w in f.c 
+)
+0
+;;
+
+type
+f:(o;(r->0|r);c;x)
+(
+let x:(o;(r->0|r)) = f in 
+  let y1:0 = x.o in
+   let y2:0 = (x x) in f.c 
 )
 0
 ;;
 
 
 type
+f:(o;(0->0|r);c)
+(
+let x:(o;(0->0|r)) = f in
+  x.o ; (x x.r) ; f.c 
+)
 0
-(fun (x:0) -> 0 { x })
+;;
+
+type
+f: (a|b;c|d)
+(
+let x:(a;b;d;c) = f in
+let u1:0 = x.a in let u2:0 = x.b in let u3:0 = x.d in x.c
+)
+0
+;;
+
+type
+f: (a|b;c|d)
+(
+let x:(a;b;d;c) = f in
+x.a ; x.b ; x.d ; x.c
+)
+0
+;;
+
+type
+f:a->b->c|x:a|y:(b;x)
+(
+f x y
+)
+c
+;;
+
+=== NEGATIVE EXAMPLES
+
+type
+f: (a|b;c|d)
+(
+let x:(a;b;d;c) = f in
+let u1:0 = x.a in let u2:0 = x.d in let u3:0 = x.b in x.c
+)
+0
+;;
+
+type
+f: (a|b;c|d)
+(
+let x:(a;b) = f in x.a
+)
+0
+;;
