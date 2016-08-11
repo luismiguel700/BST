@@ -215,6 +215,8 @@ let rec top_level lexbuf =
 				| Join(xs, a, h, y) -> join_comm xs a h y; top_level lexbuf
 				| OKjoin(xs, a, h, y, b) -> ok_join_comm xs a h y b; top_level lexbuf
 				| Typecheck(a, e, t) -> typecheck_comm a e t; top_level lexbuf
+				| DefineType(id, t) ->  top_level lexbuf
+
 			)
 		with
 			Parsing.Parse_error ->

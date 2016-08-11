@@ -26,7 +26,7 @@ let rec extr(a:assertion)(b:assertion)(cont:(assertion*assertion*map)->unit):uni
 
 	| Skip, Basic(_, _) -> cont (a, b, [])
 
-	| Hole(_), Basic(_, _) ->  cont (a, b, [])  (* problem b = 0->0 ==> b consistsofvars .. but no! *)
+	| Hole(_), Basic(_, _) ->  cont (a, b, []) 
 
 	| Var(id), Basic(id', t) -> 
                 if Types.isSkip t then cont (a, b, [])
@@ -80,6 +80,15 @@ and extrSeqAtom a1 a2 b cont =
 
 and extrParAtom a1 a2 b id cont =
         (* EXTR: Par(a1,a2) b *)
+
+        if (maySkip a1 && maySkip a2) then
+	Stack.push 
+	(
+		Stack.create (),
+		fun () -> cont (Skip, b, []) 
+	)
+	Extract.stack;
+
         if inFst_act id a2 then
 	Stack.push 
 	(
@@ -94,11 +103,12 @@ and extrParAtom a1 a2 b id cont =
 	)
 	Extract.stack;
 
-	extr a1 b
+   
+        extr a1 b
 	(
 		fun (a1', b', h1) ->
 		     if consistsOfVarsEnv b' h1 then cont ((mkPar a1' a2), b', h1)
-                     else raise (Fail("failed par branch -- backtrack"))
+		     else raise (Fail("failed par branch -- backtrack"))
 	)
 
 and extrSeq a b1 b2 cont =

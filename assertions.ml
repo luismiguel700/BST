@@ -56,6 +56,17 @@ let rec inFst t a =
 
 *)
 
+let rec maySkip a = 
+	match a with
+	| Skip -> true
+	| Seq(a1,a2) -> maySkip a1 && maySkip a2
+	| Par(a1,a2) -> maySkip a1 && maySkip a2
+	| Basic(id,t) -> Types.maySkip t
+	| Hole(_) -> true
+	| Var(_) -> false
+;;
+
+
 let rec inFst_act t a = 
 	match a with
 	| Seq(a1,a2) -> inFst_act t a1 || (isSkip a1 && inFst_act t a2)

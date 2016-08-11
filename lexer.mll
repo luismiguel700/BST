@@ -31,6 +31,7 @@ rule token = parse
 | "join"       { JOIN }  
 | "OKjoin"     { OK_JOIN } 
 | "type"     { TYPE } 
+| "typecheck"     { CTYPE } 
 | "quit"          { QUIT } 
 
 | "bool"          { BOOLT }

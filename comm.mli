@@ -13,4 +13,5 @@ type comm =
 | Join of (int list) * ty * map * int 
 | OKjoin of (int list) * ty * map * int * ty 
 | Typecheck of assertion * exp * ty
+| DefineType of int * ty
 ;;

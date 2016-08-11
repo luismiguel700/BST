@@ -17,6 +17,9 @@ val makeCanonical: assertion -> assertion;;
 
 val isSkip: assertion -> bool;;
 
+val maySkip: assertion -> bool;;
+
+
 (* val inFst: assertion -> assertion -> bool;; *)
 
 val inFst_act: int -> assertion -> bool;;

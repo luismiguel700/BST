@@ -17,6 +17,8 @@ some =
 
 val isSkip: ty -> bool;;
 
+val maySkip: ty -> bool;;
+
 val inFst: ty -> ty -> bool;; 
 
 val containsVars: ty -> int list -> bool;;

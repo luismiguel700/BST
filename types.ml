@@ -15,6 +15,20 @@ some =
 | Some of ty
 ;;
 
+(* A<:0 ? *)
+
+let rec maySkip a = 
+	match a with
+	| SkipTy -> true
+	| SeqTy(a1,a2) -> maySkip a1 && maySkip a2
+	| ParTy(a1,a2) -> maySkip a1 && maySkip a2
+	| FunTy(_,_) -> false
+	| SomeTy(_) -> false
+	| BasicTy(_) -> false
+	| HoleTy(_) -> true
+	| VarTy(_) -> false
+;;
+
 (* A<:>0 ? *)
 let rec isSkip a =
 	match a with

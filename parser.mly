@@ -20,6 +20,7 @@ open Comm
 %token JOIN
 %token OK_JOIN
 %token TYPE
+%token CTYPE
 
 %token PAR
 %token SEQ
@@ -79,7 +80,8 @@ command:
 | KO_EXTR ty ty { KOextract($2, $3) }
 | JOIN join_args { let (xs, a, h, y) = $2 in Join(xs, a, h, y) }
 | OK_JOIN join_args ty { let (xs, a, h, y) = $2 in OKjoin(xs, a, h, y, $3) }
-| TYPE assertion LPAR exp RPAR ty { Typecheck($2, $4, $6) } 
+| CTYPE assertion LPAR exp RPAR ty { Typecheck($2, $4, $6) } 
+| TYPE ID EQ ty { DefineType($2, $4) } 
 
 /******** TYPES ********/
 

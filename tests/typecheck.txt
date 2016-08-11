@@ -1,6 +1,6 @@
 === POSITIVE EXAMPLES
 
-type
+typecheck
 openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
 	let 
@@ -13,7 +13,7 @@ openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 
 ;;
 
-type
+typecheck
 openFile2:open->0;rdwrFile:((read|write)->0)|file:open;(file:read|file:write);file:close
 (
 let x:0 = openFile2 file in rdwrFile file
@@ -21,7 +21,7 @@ let x:0 = openFile2 file in rdwrFile file
 0
 ;;
 
-type
+typecheck
 fun1:(open->0);fun2:(close->0) | file:(open;close) 
 
 (
@@ -36,7 +36,7 @@ fun1:(open->0);fun2:(close->0) | file:(open;close)
 0
 ;;
 
-type
+typecheck
 (openFile:(open->0); rdwrFile:((read;write)->0)) | file:(open;(read|write);close)
 (
 	let 
@@ -51,7 +51,7 @@ type
 
 ;;
 
-type
+typecheck
 openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
 	let 
@@ -64,7 +64,7 @@ open->0
 
 ;;
 
-type
+typecheck
 openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
 	let 
@@ -77,7 +77,7 @@ openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 
 ;;
 
-type
+typecheck
 openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 (
 	let 
@@ -90,7 +90,7 @@ openFile:(open->0);rdwrFile:((read;write)->0) | file:(open;(read|write);close)
 
 ;;
 
-type
+typecheck
 f : (open;close;run) | g:open
 (
 let x:0 = f.open in 
@@ -99,14 +99,14 @@ let y:0 = f.close in f.run
 0
 ;;
 
-type
+typecheck
 f : ((open -> R);S) | g:(open;close)
 (
 f g)
 R
 ;;
 
-type
+typecheck
 f : ((open -> R);S) | g:(open;close)
 (
   let x:(open;close) = g in x
@@ -117,7 +117,7 @@ f : ((open -> R);S) | g:(open;close)
 
 
 
-type
+typecheck
 fun1:(open->0);fun2:(close->0) | filxe:(open;close) | foo:0
 
 (
@@ -134,7 +134,7 @@ fun1:(open->0);fun2:(close->0) | filxe:(open;close) | foo:0
 
 ;;
 
-type
+typecheck
 0
 (
 		fun (file:(open)) -> 0 
@@ -145,7 +145,7 @@ type
 (open)->0
 ;;
 
-type
+typecheck
 f:(open -> 0)
 (
 		fun (file:(open)) -> 0 
@@ -156,7 +156,7 @@ f:(open -> 0)
 open->0
 ;;
 
-type
+typecheck
 f:(open -> 0);f:(close -> 0)
 (
 		fun (file:(open;close)) -> 0 
@@ -167,7 +167,7 @@ f:(open -> 0);f:(close -> 0)
 (open;close)->0
 ;;
 
-type
+typecheck
 f:(open -> 0);f:(close -> 0) | r:foo
 (
 let 
@@ -183,7 +183,7 @@ in h
 (open;close)->0
 ;;
 
-type
+typecheck
 0
 (
 fun (x:0) -> 0 {x}
@@ -192,7 +192,7 @@ fun (x:0) -> 0 {x}
 ;;
 
 
-type
+typecheck
 0
 (
 (
@@ -203,7 +203,7 @@ fun (x:0) -> 0 {x}
 
 
 
-type
+typecheck
 y:foo
 (
 y
@@ -211,7 +211,7 @@ y
 0
 ;;
 
-type
+typecheck
 fun1:(open->0);fun2:(close->0) | file:(open;close) 
 
 (
@@ -227,19 +227,19 @@ fun1:(open->0);fun2:(close->0) | file:(open;close)
 0
 ;;
 
-type
+typecheck
 f:0->0 | y:stop
 (f y)
 0
 ;;
 
-type
+typecheck
 a:(foo;joo) |a:foo | c:fie
 (a.foo)
 0
 ;;
 
-type
+typecheck
 f:(o;(r|w);c)
 (
 let x:(o;r;w) = f in 
@@ -250,7 +250,7 @@ let x:(o;r;w) = f in
 0
 ;;
 
-type
+typecheck
 f:(o;(r->0|r);c;x)
 (
 let x:(o;(r->0|r)) = f in 
@@ -261,7 +261,7 @@ let x:(o;(r->0|r)) = f in
 ;;
 
 
-type
+typecheck
 f:(o;(0->0|r);c)
 (
 let x:(o;(0->0|r)) = f in
@@ -270,7 +270,7 @@ let x:(o;(0->0|r)) = f in
 0
 ;;
 
-type
+typecheck
 f: (a|b;c|d)
 (
 let x:(a;b;d;c) = f in
@@ -279,7 +279,7 @@ let u1:0 = x.a in let u2:0 = x.b in let u3:0 = x.d in x.c
 0
 ;;
 
-type
+typecheck
 f: (a|b;c|d)
 (
 let x:(a;b;d;c) = f in
@@ -288,7 +288,7 @@ x.a ; x.b ; x.d ; x.c
 0
 ;;
 
-type
+typecheck
 f:a->b->c|x:a|y:(b;x)
 (
 f x y
@@ -298,7 +298,7 @@ c
 
 === NEGATIVE EXAMPLES
 
-type
+typecheck
 f: (a|b;c|d)
 (
 let x:(a;b;d;c) = f in
@@ -307,7 +307,7 @@ let u1:0 = x.a in let u2:0 = x.d in let u3:0 = x.b in x.c
 0
 ;;
 
-type
+typecheck
 f: (a|b;c|d)
 (
 let x:(a;b) = f in x.a
