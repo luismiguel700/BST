@@ -114,19 +114,29 @@ and extrSeqAtom a1 a2 b cont =
 	)
 
 and extrParAtom a1 a2 b cont =
-        if inFst b a2 then
-	Stack.push 
-	(
-		Stack.create (),
-		fun () ->
-			extr a2 b
-			(
-				fun (a2', b', h2) ->
-				   if consistsOfVarsEnv b' h2 then cont ((mkPar a1 a2'), b', h2)
-				     else raise (Fail("failed par branch -- backtrack"))
-			)
-	)
-	stack;
+	if (maySkip a1 && maySkip a2) then
+		Stack.push 
+		(
+			Stack.create (),
+			fun () -> cont (SkipTy, b, []) 
+		)
+		stack;
+
+	if inFst b a2 then
+		Stack.push 
+		(
+			Stack.create (),
+				fun () ->
+				extr a2 b
+				(
+					fun (a2', b', h2) ->
+						if consistsOfVarsEnv b' h2 then
+							cont ((mkPar a1 a2'), b', h2)
+				    	else
+				    		raise (Fail("failed par branch -- backtrack"))
+				)
+		)
+		stack;
 
 	extr a1 b
 	(
