@@ -1,0 +1,47 @@
+typecheck
+x:(a;b|c;d) | f:((a|c);(b|d))->0
+(
+	f x
+)
+0
+;;
+
+typecheck
+x:((a|c);(b|d)) | f:(a;b|c;d)->0
+(
+	f x
+)
+0
+;;
+
+typecheck
+x:(a|c) | f:(a;b|c;d)->0
+(
+	f x
+)
+0
+;;
+
+typecheck
+x:((a|c);(b|d)) | f:(a|c)->0
+(
+	f x
+)
+0
+;;
+
+typecheck
+x:((a|c);(b|d)) | f:(a|c)->(a|a)
+(
+	f x
+)
+a|a
+;;
+
+typecheck
+x:((a|c);(b|d)) | f:(a|c)->(a|a)
+(
+	f x
+)
+a;a
+;;
